@@ -1,8 +1,15 @@
 # Lucas Calderon
 # This file contains some helper functions for the project.
 
+import sys
+import os
+
+# Add the project root directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 from Config import bodies_data as bd
+
 
 def sc_heigth(pos):
     """
@@ -19,3 +26,5 @@ def sc_heigth(pos):
     earth_radius = bd.Earth.radius_equator - abs(theta) / (2*np.pi) * (bd.Earth.radius_equator - bd.Earth.radius_polar)
     height = np.linalg.norm(pos) - earth_radius
     return height
+
+

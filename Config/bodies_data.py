@@ -3,6 +3,7 @@
 # The data is in the form of dictionaries.
 
 from collections import namedtuple
+
 # Using named tuples to make it more numba friendly, they are immutable and faster than dictionaries
 
 # Define named tuples for Earth and Moon data

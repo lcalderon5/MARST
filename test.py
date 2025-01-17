@@ -1,52 +1,78 @@
 import numpy as np
-from numba import njit
 import matplotlib.pyplot as plt
 
-# Constants
-G = 6.67430e-11  # Gravitational constant, m^3 kg^-1 s^-2
-M = 5.972e24     # Mass of Earth, kg
-R = 6.371e6      # Radius of Earth, m
+# Define constants
+mass = 1.0  # kg
+initial_position = np.array([0.0, 0.0])  # meters
+initial_velocity = np.array([1.0, 0.0])  # m/s (initial velocity in x direction)
 
-@njit
-def compute_acceleration(position):
-    """Compute gravitational acceleration at a given position."""
-    r = np.linalg.norm(position)
-    if r == 0:
-        return np.array([0.0, 0.0])
-    return -G * M / r**3 * position
+# Define the acceleration as a function of time or position
+def acceleration(t, position, velocity):
+    # Example: constant acceleration in the x direction
+    return np.array([0.0, -9.81])  # m/s^2 (gravity in the negative y direction)
 
-@njit
-def run_simulation(initial_position, initial_velocity, dt, steps):
-    """Simulate the orbit using the Euler method."""
-    position = np.zeros((steps, 2))
-    velocity = np.zeros((steps, 2))
-    position[0] = initial_position
-    velocity[0] = initial_velocity
+# Define the system of equations
+def system(t, state):
+    position = state[:2]
+    velocity = state[2:]
+    acc = acceleration(t, position, velocity)
+    return np.concatenate([velocity, acc])
 
-    for i in range(1, steps):
-        acceleration = compute_acceleration(position[i-1])
-        velocity[i] = velocity[i-1] + acceleration * dt
-        position[i] = position[i-1] + velocity[i-1] * dt
+# Runge-Kutta 4th order method
+def runge_kutta_4(f, t0, tf, h, initial_state):
+    t = np.arange(t0, tf, h)
+    num_steps = len(t)
+    state = np.zeros((num_steps, len(initial_state)))
 
-    return position
+    state[0] = initial_state
+    for i in range(1, num_steps):
+        t_current = t[i-1]
+        state_current = state[i-1]
 
-# Initial conditions
-initial_position = np.array([R + 500e3, 0.0])  # 500 km above Earth's surface
-initial_velocity = np.array([0.0, 7.8e3])      # Approx orbital velocity, m/s
-dt = 1.0                                       # Time step, seconds
-steps = 10000                                  # Number of steps
+        k1 = h * f(t_current, state_current)
+        k2 = h * f(t_current + 0.5 * h, state_current + 0.5 * k1)
+        k3 = h * f(t_current + 0.5 * h, state_current + 0.5 * k2)
+        k4 = h * f(t_current + h, state_current + k3)
 
-# Run the simulation
-positions = run_simulation(initial_position, initial_velocity, dt, steps)
+        state[i] = state_current + (k1 + 2*k2 + 2*k3 + k4) / 6
 
-# Plot the orbit
-plt.figure(figsize=(8, 8))
-plt.plot(positions[:, 0], positions[:, 1], label="Orbit")
-plt.scatter(0, 0, color='red', label="Earth", s=100)
-plt.gca().set_aspect('equal', adjustable='box')
-plt.title("Orbit Simulation")
-plt.xlabel("x position (m)")
-plt.ylabel("y position (m)")
+    return t, state
+
+# Define initial state
+initial_state = np.concatenate([initial_position, initial_velocity])
+
+# Time parameters
+t0 = 0.0  # Start time
+tf = 10.0  # End time
+h = 0.01  # Time step size
+
+# Solve using Runge-Kutta method
+t, state = runge_kutta_4(system, t0, tf, h, initial_state)
+
+# Extract position and velocity from the state array
+positions = state[:, :2]  # Position is the first two components
+velocities = state[:, 2:]  # Velocity is the last two components
+
+# Plot results
+plt.figure(figsize=(12, 6))
+
+# Position plot
+plt.subplot(1, 2, 1)
+plt.plot(t, positions[:, 0], label="X Position")
+plt.plot(t, positions[:, 1], label="Y Position")
+plt.xlabel('Time (s)')
+plt.ylabel('Position (m)')
+plt.title('Position vs Time')
 plt.legend()
-plt.grid()
+
+# Velocity plot
+plt.subplot(1, 2, 2)
+plt.plot(t, velocities[:, 0], label="X Velocity")
+plt.plot(t, velocities[:, 1], label="Y Velocity")
+plt.xlabel('Time (s)')
+plt.ylabel('Velocity (m/s)')
+plt.title('Velocity vs Time')
+plt.legend()
+
+plt.tight_layout()
 plt.show()
