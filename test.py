@@ -11,33 +11,34 @@ import numpy as np
 from numba import njit, jit
 from Config.bodies_data import earth
 
-def test_func(n, method="normal"):
+def test_func(n):
     """
     This function calculates the sum of the first n numbers.
     """
     sum = 0
+    matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
     for i in range(n):
         sum += i
-        if method == "normal":
-            a = earth.gravitational_parameter
+        cross_product = np.cross(matrix, matrix)
     return sum
 
 @njit()
-def test_func_numba(n, method="numba"):
+def test_func_numba(n,):
     """
     This function calculates the sum of the first n numbers.
     """
     sum = 0
+    matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
     for i in range(n):
         sum += i
-        if method == "numba":
-            a = earth.gravitational_parameter
+        cross_product = np.cross(matrix, matrix)
+
     return sum
 
 # Test the function
-n = 100000000
+n = 1000000
 
 # Test the normal function
 start = time.time()

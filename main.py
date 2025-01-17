@@ -14,7 +14,7 @@ from Results.visualization import plot_orbit_plotly, plot_atmos_data
 if __name__ == "__main__":
 
     # Define the simulation parameters
-    n_max = 10000000
+    n_max = 1000000
     dt = 0.1
 
     # Run the simulation

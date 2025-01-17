@@ -17,7 +17,7 @@ earth = Earth(
     radius_equator=6378.137,  # km
     radius_polar=6356.752,  # km
     gravitational_parameter=3.986004418e5,  # km^3/s^2
-    J2=1.08262668e-3,  # J2 coefficient for Earth oblateness
+    J2=0*1.08262668e-3,  # J2 coefficient for Earth oblateness
     day=86164.1  # seconds
 )
 

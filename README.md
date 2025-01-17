@@ -19,11 +19,12 @@ Fixed Epoch:
 Often coordinates for position, velocity or acceleration are sotred in numpy arrays in the order [x, y, z]
 
 # About numba
-I'm still learning how to properly use it, but so far some recomendations are:
+I'm still learning how to properly use it, but so far some recomendations are:  
 Rules to ensure numba works as good as possible
     Avoid dictionaries, you can use named tuples instead
     Avoid lists with different types inside
     Use nonpython mode as much as possible
+    basically use simple arithmetic and life wil be fast and good
 
 
 # About the simulation function: run_simualation()

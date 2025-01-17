@@ -30,7 +30,7 @@ def sc_heigth(pos):
 
 
 # Function to set intial conditions
-# @njit
+@njit
 def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float, 
                                   raan: float, arg_periapsis: float, init_anomaly: float):
     """
