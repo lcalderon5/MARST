@@ -19,9 +19,10 @@ def run_simulation(n_max, dt, Method = "euler"):
 
     Returns:
         pos_hist: THe history of the positions of the spacecraft
+        vel_hist: The history of the velocities of the spacecraft
+        acc_hist: The history of the accelerations of the spacecraft
         flows_hist: The history of the composition of the air captured by the spacecraft
-        heat_hist: The history of the heat endured by the spacecraft
-        time_hist: The history of the time elapsed in the atmosphere and in space
+        atmos_time: The time that the spacecraft has been in the atmosphere
     
     """
 
@@ -30,7 +31,6 @@ def run_simulation(n_max, dt, Method = "euler"):
     vel_hist = np.zeros[(n_max, 3)] # Ordered in the following way: [v_x, v_y, v_z]
     acc_hist = np.zeros[(n_max, 3)] # Ordered in the following way: [a_x, a_y, a_z]
     flows_hist = np.zeros[(n_max, 8)] # This is the composition of the air captured by the spacecraft, ordered in the following way: [air_mass, O_num, N2_num, O2_num, He_num, Ar_num, H_num, N_num]
-    heat_hist = np.array[(n_max, 1)]
     atmos_time = 0
 
     # Apply initial conditions
@@ -90,6 +90,6 @@ def run_simulation(n_max, dt, Method = "euler"):
         raise ValueError("Method must be a valid entry")
 
 
-    return pos_hist, vel_hist, acc_hist, flows_hist, heat_hist, atmos_time
+    return pos_hist, vel_hist, acc_hist, flows_hist, atmos_time
 
 
