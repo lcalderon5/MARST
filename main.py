@@ -5,6 +5,7 @@
 import numpy as np
 from numba import njit
 from Modules.dynamics import acceleration
+from Modules.simulation_math import run_simulation
 
 
 
