@@ -4,7 +4,7 @@
 import numpy as np
 from numba import njit
 from dynamics import acceleration
-
+from Config.spacecraft import Spacecraft
 
 
 @njit
@@ -34,8 +34,8 @@ def run_simulation(n_max, dt, Method = "euler"):
     atmos_time = 0
 
     # Apply initial conditions
-    pos_hist[0] = np.array([0, 0, 0])
-    vel_hist[0] = np.array([0, 0, 0])
+    pos_hist[0] = Spacecraft.initial_position
+    vel_hist[0] = Spacecraft.initial_velocity
 
     # Run the simulation
     if Method == "euler": # Simple euler implementation
