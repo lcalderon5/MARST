@@ -1,65 +1,53 @@
-# This file will simulate a ball bouncing
+# test how much numba speeds up a function
 
-# Import
+import sys
+import os
+
+# Add the project root directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import time
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from numba import njit, jit
+from Config.bodies_data import earth
 
-# Define the simulation parameters
-n_max = 1000
-dt = 0.01
+def test_func(n, method="normal"):
+    """
+    This function calculates the sum of the first n numbers.
+    """
+    sum = 0
 
-# Define the initial conditions
-initial_position = np.array([0, 10]) # m
-initial_velocity = np.array([10, 5])
+    for i in range(n):
+        sum += i
+        if method == "normal":
+            a = earth.gravitational_parameter
+    return sum
 
-# Define the acceleration function
-acc = np.array([0, -9.81]) # m/s^2
+@njit()
+def test_func_numba(n, method="numba"):
+    """
+    This function calculates the sum of the first n numbers.
+    """
+    sum = 0
 
-# Create lists
-pos_hist = np.zeros((n_max, 2)) # Ordered in the following way: [x, y]
-vel_hist = np.zeros((n_max, 2)) # Ordered in the following way: [v_x, v_y]
+    for i in range(n):
+        sum += i
+        if method == "numba":
+            a = earth.gravitational_parameter
+    return sum
 
-# Apply initial conditions
-pos_hist[0] = initial_position
-vel_hist[0] = initial_velocity
+# Test the function
+n = 100000000
 
-# Run the simulation
-for i in range(n_max - 1):
-    vel_hist[i+1] = vel_hist[i] + acc * dt
-    pos_hist[i+1] = pos_hist[i] + vel_hist[i] * dt
+# Test the normal function
+start = time.time()
+print(test_func(n))
+end = time.time()
+print(f"Normal function: {end - start}")
 
-    # Add bounce check
-    if pos_hist[i+1][1] < 0:
-        pos_hist[i+1][1] = 0
-        vel_hist[i+1][1] = -vel_hist[i+1][1] * 0.9
-
-# Animate the ball bouncing
-
-# Extract the x and y positions
-x_positions = pos_hist[:, 0]
-y_positions = pos_hist[:, 1]
-
-# Create a figure and axis
-fig, ax = plt.subplots()
-ax.set_xlim(min(x_positions) - 1, max(y_positions) + 1)
-ax.set_ylim(min(y_positions) - 1, max(y_positions) + 1)
-
-# Initialize a point (ball) to be plotted
-ball, = ax.plot([], [], 'bo', markersize=10)
-
-# Function to initialize the animation
-def init():
-    ball.set_data([], [])
-    return ball,
-
-# Function to update the ball's position for each frame
-def update(frame):
-    ball.set_data(x_positions[frame], y_positions[frame])
-    return ball,
-
-# Create the animation
-ani = FuncAnimation(fig, update, frames=len(x_positions), init_func=init, blit=True, interval=1)
-
-plt.show()
-
+# Test the numba function
+start = time.time()
+sum = test_func_numba(n)
+print(sum)
+end = time.time()
+print(f"Numba function: {end - start}")

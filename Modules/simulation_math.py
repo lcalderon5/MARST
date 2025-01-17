@@ -13,14 +13,14 @@ from Config.spacecraft import spacecraft
 
 
 @njit
-def run_simulation(n_max: int, dt:float, Method = "euler"):
+def run_simulation(n_max: int, dt:float, Method = "RK4"):
     """
     This function runs the simulation.
 
     Inputs:
         dt = 1: The time step of the simulation
         n_max = 1000: The maximum number of time steps of the simulation
-        Method = "euler": The method to use to run the simulation. It can be "euler", "KR4"  and "Verlet" for now and in the future maybe "RK45" if I get carried away
+        Method = "euler": The method to use to run the simulation. It can be "euler", "RK4"  and "Verlet" for now and in the future maybe "RK45" if I get carried away
 
     Returns:
         pos_hist: THe history of the positions of the spacecraft
@@ -52,7 +52,7 @@ def run_simulation(n_max: int, dt:float, Method = "euler"):
             vel_hist[i] = vel_hist[i-1] + acc * dt
             pos_hist[i] = pos_hist[i-1] + vel_hist[i] * dt
 
-    elif Method == "KR4":
+    elif Method == "RK4":
         for i in range(1, n_max):
             # RK4 for velocity
             k1_v = acceleration(pos_hist[i-1], vel_hist[i-1])

@@ -14,10 +14,14 @@ import plotly.graph_objects as go
 
 # Plotting functions
 
-def plot_orbit_plotly(motions, atmosphere_altitude=750, show_periandapo=False, atmoslayers=False):
+def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750, show_periandapo=False, atmoslayers=False):
+
+    # Apply resolution
+    step = int(1 / res)
+    motions = motions[::step]
 
     # Create a sphere for Earth
-    earth_radius = 6371  # km
+    earth_radius = 6371 # km
     u = np.linspace(0, 2 * np.pi, 100)
     v = np.linspace(0, np.pi, 100)
     x_earth = earth_radius * np.outer(np.cos(u), np.sin(v))

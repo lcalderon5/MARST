@@ -13,28 +13,28 @@ from Config import bodies_data as bd
 
 # Acceleration function
 @njit
-def acceleration(position, velocity, atmos=True):
+def acceleration(position:np.array, velocity:np.array, atmos:bool=True) -> np.array:
 
     """
     This function calculates the acceleration of the spacecraft.
+    For now it is only considering the gravitational pull of the Earth!!!!
     It takes into account the gravitational pull of the celestial bodies up to the second order.
     It also takes into account the drag of the atmosphere.
 
     """
 
-    # Calculate radius, colatitude, longitude and height
-    r = np.linalg.norm(position)
+    # Calculate radius, colatitude and height
+    r = np.sqrt(np.sum(position**2))
     theta = np.arccos(position[2] / r)
-    phi = np.arctan(position[1] / position[0])
     h = sc_heigth(position)
 
     # Acceleration due to gravity
-    a_r = -bd.earth.gravitational_parameter / r**2 * (1 - 1.5 * bd.earth.J2 * (bd.earth.radius_equator / r)**2 * (3 * np.cos(theta)**2 - 1))
+    a_r = -bd.earth.gravitational_parameter / r**2 * (1 - 1.5 * bd.earth.J2 * (bd.earth.radius_equator / r)**2 * (3 * np.sin(theta)**2 - 1))
     a_theta = -3 * bd.earth.gravitational_parameter / r**4 * bd.earth.J2 * bd.earth.radius_equator**2 * np.cos(theta) * np.sin(theta)
 
     # Unit vectors in spherical coordinates
     r_hat = position / r  # radial unit vector
-    theta_hat = np.array([x / r * np.cos(theta) for x in position])
+    theta_hat = position / r * np.cos(theta) # latitudinal unit vector
 
     # Gravitational acceleration in Cartesian coordinates
     a_r_vec = a_r * r_hat  # Radial component
@@ -52,4 +52,39 @@ def acceleration(position, velocity, atmos=True):
     return a_total
 
 
+def acceleration_improved(position:np.array, velocity:np.array, mu:float, r_b:float, J2:float,  atmos:bool=True) -> np.array:
 
+    """
+    This function calculates the acceleration of the spacecraft.
+    For now it is only considering the gravitational pull of the Earth!!!!
+    It takes into account the gravitational pull of the celestial bodies up to the second order.
+    It also takes into account the drag of the atmosphere.
+
+    """
+
+    # Calculate radius, colatitude and height
+    r = np.sqrt(np.sum(position**2))
+    theta = np.arccos(position[2] / r)
+    h = sc_heigth(position)
+
+    # Acceleration due to gravity
+    a_r = -mu / r**2 * (1 - 1.5 * J2 * (r_b / r)**2 * (3 * np.sin(theta)**2 - 1))
+    a_theta = -3 * mu / r**4 * J2 * r_b**2 * np.cos(theta) * np.sin(theta)
+
+    # Unit vectors in spherical coordinates
+    r_hat = position / r  # radial unit vector
+    theta_hat = position / r * np.cos(theta) # latitudinal unit vector
+
+    # Gravitational acceleration in Cartesian coordinates
+    a_r_vec = a_r * r_hat  # Radial component
+    a_theta_vec = a_theta * theta_hat  # Latitudinal component
+    # No need for longitudinal component, as it is zero if only considering a second order model
+    
+    # Total gravitational acceleration in Cartesian coordinates
+    a_total = a_r_vec + a_theta_vec # This is a three element vector, containing the x, y and z components of the acceleration
+
+    # Acceleration due to drag
+    if h < 750 and atmos is True: # Number is the atmos model height in km.
+        pass
+    
+    return

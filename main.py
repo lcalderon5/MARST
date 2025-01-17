@@ -14,12 +14,13 @@ from Results.visualization import plot_orbit_plotly, plot_atmos_data
 if __name__ == "__main__":
 
     # Define the simulation parameters
-    n_max = 100000
+    n_max = 10000000
     dt = 0.1
 
     # Run the simulation
-    pos_hist, vel_hist, acc_hist, flows_hist, atmos_time = run_simulation(n_max, dt, Method = "KR4")
+    pos_hist, vel_hist, acc_hist, flows_hist, atmos_time = run_simulation(n_max, dt, Method = "RK4")
+    print("Simulation finished")
 
     # Plot the results
-    plot_orbit_plotly(pos_hist)
+    plot_orbit_plotly(pos_hist, res=0.1)
 
