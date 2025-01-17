@@ -15,7 +15,7 @@ def run_simulation(n_max, dt, Method = "euler"):
     Inputs:
         dt = 1: The time step of the simulation
         n_max = 1000: The maximum number of time steps of the simulation
-        Method = "euler": The method to use to run the simulation. It can be "euler" or "KR4"
+        Method = "euler": The method to use to run the simulation. It can be "euler", "KR4"  and "Verlet" for now and in the future maybe "RK45" if I get carried away
 
     Returns:
         pos_hist: THe history of the positions of the spacecraft
@@ -38,7 +38,7 @@ def run_simulation(n_max, dt, Method = "euler"):
     vel_hist[0] = np.array([0, 0, 0])
 
     # Run the simulation
-    if Method == "euler":
+    if Method == "euler": # Simple euler implementation
         for i in range(1, n_max):
 
             acc = acceleration(pos_hist[i-1], vel_hist[i-1])
@@ -49,19 +49,47 @@ def run_simulation(n_max, dt, Method = "euler"):
 
     elif Method == "KR4":
         for i in range(1, n_max):
+            # RK4 for velocity
+            k1_v = acceleration(pos_hist[i-1], vel_hist[i-1])
+            k2_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt / 2, vel_hist[i-1] + k1_v * dt / 2)
+            k3_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt / 2, vel_hist[i-1] + k2_v * dt / 2)
+            k4_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt, vel_hist[i-1] + k3_v * dt)
 
-            k1 = acceleration(pos_hist[i-1], vel_hist[i-1])
-            k2 = acceleration(pos_hist[i-1] + k1 * dt / 2, vel_hist[i-1] + k1 * dt / 2)
-            k3 = acceleration(pos_hist[i-1] + k2 * dt / 2, vel_hist[i-1] + k2 * dt / 2)
-            k4 = acceleration(pos_hist[i-1] + k3 * dt, vel_hist[i-1] + k3 * dt)
+            acc_hist[i] = k1_v
+            vel_hist[i] = vel_hist[i-1] + (k1_v + 2*k2_v + 2*k3_v + k4_v) / 6 * dt
 
-            acc_hist[i] = k1
+            # RK4 for position
+            k1_r = vel_hist[i-1]
+            k2_r = vel_hist[i-1] + k1_v * dt / 2
+            k3_r = vel_hist[i-1] + k2_v * dt / 2
+            k4_r = vel_hist[i-1] + k3_v * dt
 
-            vel_hist[i] = vel_hist[i-1] + (k1 + 2*k2 + 2*k3 + k4) / 6 * dt
-            pos_hist[i] = pos_hist[i-1] + vel_hist[i] * dt
+            pos_hist[i] = pos_hist[i-1] + (k1_r + 2*k2_r + 2*k3_r + k4_r) / 6 * dt
+
+    elif Method == "Verlet":
+        # Initial updates
+        a0 = acceleration(pos_hist[0], vel_hist[0])
+        pos_hist[1] = pos_hist[0] + vel_hist[0] * dt + 0.5 * a0 * dt**2
+        a1 = acceleration(pos_hist[1], vel_hist[0])
+        vel_hist[1] = vel_hist[0] + 0.5 * (a0 + a1) * dt
+        
+        for i in range(1, n_max - 1):
+            # Verlet for position
+            pos_hist[i + 1] = pos_hist[i] + vel_hist[i] * dt + 0.5 * a1 * dt**2
+            
+            # Update acceleration at new position
+            a2 = acceleration(pos_hist[i + 1], vel_hist[i])
+            
+            # Verlet for velocity
+            vel_hist[i + 1] = vel_hist[i] + 0.5 * (a1 + a2) * dt
+            
+            # Update previous acceleration for the next step
+            a1 = a2
 
     else:
-        raise ValueError("Method must be 'euler' or 'KR4'")
+        raise ValueError("Method must be a valid entry")
 
 
     return pos_hist, vel_hist, acc_hist, flows_hist, heat_hist, atmos_time
+
+
