@@ -33,6 +33,24 @@ def sc_heigth(pos):
 @njit
 def orbital_elements_to_cartesian(mu, peri, apo, i, raan, arg_periapsis, init_anomaly):
 
+    """
+    This function converts orbital elements to cartesian coordinates.
+
+    Inputs:
+        mu: The gravitational parameter of the central body
+        peri: The periapsis of the orbit
+        apo: The apoapsis of the orbit
+        i: The inclination of the orbit
+        raan: The right ascension of the ascending node
+        arg_periapsis: The argument of periapsis
+        init_anomaly: The initial true anomaly
+
+    Returns:
+        r_inertial: The position vector in the inertial frame
+        v_inertial: The velocity vector in the inertial frame
+
+    """
+
     # Convert some stuff to radians
     i = np.radians(i)
     raan = np.radians(raan)

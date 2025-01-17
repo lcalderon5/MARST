@@ -4,6 +4,7 @@
 import numpy as np
 from collections import namedtuple
 from bodies_data import Earth
+from Modules.helper import orbital_elements_to_cartesian
 
 # Using named tuples to make it more numba friendly, they are immutable and faster than dictionaries
 
@@ -25,8 +26,8 @@ a = (Apoapsis + Periapsis) / 2 # in km
 e = (Apoapsis - Periapsis) / (Apoapsis + Periapsis) # unitless
 
 # Convert these to a position and velocity vector
-initial_position = np.array([0, 0, 0])  # Initial position in km
-initial_velocity = np.array([0, 0, 0])  # Initial velocity in km/s
+mu = Earth.gravitational_parameter # This can be changed depending on the body that the spacecraft is initially orbiting
+initial_position, initial_velocity = orbital_elements_to_cartesian(mu, Periapsis, Apoapsis, Inclination, Rigth_Ascension_node, Argument_periapsis, Initial_anomaly)
 
 
 
@@ -43,6 +44,6 @@ Spacecraft = Spacecraft(
                     A=4,  # m^2
                     A_intake=4,  # m^2
                     eff_in=0.4,  # Efficiency of the intake
-                    initial_position=np.array([6500, 0, 0]),  # Initial position in km
-                    initial_velocity=np.array([0, 0, 0])  # Initial velocity in km/s
+                    initial_position=initial_position,  # Initial position in km
+                    initial_velocity=initial_velocity  # Initial velocity in km/s
 )
