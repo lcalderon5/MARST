@@ -1,9 +1,14 @@
 # Lucas Calderon
 # This file contains the physiscs for the orbital mechanics of the spacecraft.
+import sys
+import os
+
+# Add the project root directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import numpy as np
 from numba import njit
-from helper import sc_heigth
+from Modules.helper import sc_heigth
 from Config import bodies_data as bd
 
 # Acceleration function

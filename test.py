@@ -1,78 +1,65 @@
+# This file will simulate a ball bouncing
+
+# Import
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
-# Define constants
-mass = 1.0  # kg
-initial_position = np.array([0.0, 0.0])  # meters
-initial_velocity = np.array([1.0, 0.0])  # m/s (initial velocity in x direction)
+# Define the simulation parameters
+n_max = 1000
+dt = 0.01
 
-# Define the acceleration as a function of time or position
-def acceleration(t, position, velocity):
-    # Example: constant acceleration in the x direction
-    return np.array([0.0, -9.81])  # m/s^2 (gravity in the negative y direction)
+# Define the initial conditions
+initial_position = np.array([0, 10]) # m
+initial_velocity = np.array([10, 5])
 
-# Define the system of equations
-def system(t, state):
-    position = state[:2]
-    velocity = state[2:]
-    acc = acceleration(t, position, velocity)
-    return np.concatenate([velocity, acc])
+# Define the acceleration function
+acc = np.array([0, -9.81]) # m/s^2
 
-# Runge-Kutta 4th order method
-def runge_kutta_4(f, t0, tf, h, initial_state):
-    t = np.arange(t0, tf, h)
-    num_steps = len(t)
-    state = np.zeros((num_steps, len(initial_state)))
+# Create lists
+pos_hist = np.zeros((n_max, 2)) # Ordered in the following way: [x, y]
+vel_hist = np.zeros((n_max, 2)) # Ordered in the following way: [v_x, v_y]
 
-    state[0] = initial_state
-    for i in range(1, num_steps):
-        t_current = t[i-1]
-        state_current = state[i-1]
+# Apply initial conditions
+pos_hist[0] = initial_position
+vel_hist[0] = initial_velocity
 
-        k1 = h * f(t_current, state_current)
-        k2 = h * f(t_current + 0.5 * h, state_current + 0.5 * k1)
-        k3 = h * f(t_current + 0.5 * h, state_current + 0.5 * k2)
-        k4 = h * f(t_current + h, state_current + k3)
+# Run the simulation
+for i in range(n_max - 1):
+    vel_hist[i+1] = vel_hist[i] + acc * dt
+    pos_hist[i+1] = pos_hist[i] + vel_hist[i] * dt
 
-        state[i] = state_current + (k1 + 2*k2 + 2*k3 + k4) / 6
+    # Add bounce check
+    if pos_hist[i+1][1] < 0:
+        pos_hist[i+1][1] = 0
+        vel_hist[i+1][1] = -vel_hist[i+1][1] * 0.9
 
-    return t, state
+# Animate the ball bouncing
 
-# Define initial state
-initial_state = np.concatenate([initial_position, initial_velocity])
+# Extract the x and y positions
+x_positions = pos_hist[:, 0]
+y_positions = pos_hist[:, 1]
 
-# Time parameters
-t0 = 0.0  # Start time
-tf = 10.0  # End time
-h = 0.01  # Time step size
+# Create a figure and axis
+fig, ax = plt.subplots()
+ax.set_xlim(min(x_positions) - 1, max(y_positions) + 1)
+ax.set_ylim(min(y_positions) - 1, max(y_positions) + 1)
 
-# Solve using Runge-Kutta method
-t, state = runge_kutta_4(system, t0, tf, h, initial_state)
+# Initialize a point (ball) to be plotted
+ball, = ax.plot([], [], 'bo', markersize=10)
 
-# Extract position and velocity from the state array
-positions = state[:, :2]  # Position is the first two components
-velocities = state[:, 2:]  # Velocity is the last two components
+# Function to initialize the animation
+def init():
+    ball.set_data([], [])
+    return ball,
 
-# Plot results
-plt.figure(figsize=(12, 6))
+# Function to update the ball's position for each frame
+def update(frame):
+    ball.set_data(x_positions[frame], y_positions[frame])
+    return ball,
 
-# Position plot
-plt.subplot(1, 2, 1)
-plt.plot(t, positions[:, 0], label="X Position")
-plt.plot(t, positions[:, 1], label="Y Position")
-plt.xlabel('Time (s)')
-plt.ylabel('Position (m)')
-plt.title('Position vs Time')
-plt.legend()
+# Create the animation
+ani = FuncAnimation(fig, update, frames=len(x_positions), init_func=init, blit=True, interval=1)
 
-# Velocity plot
-plt.subplot(1, 2, 2)
-plt.plot(t, velocities[:, 0], label="X Velocity")
-plt.plot(t, velocities[:, 1], label="Y Velocity")
-plt.xlabel('Time (s)')
-plt.ylabel('Velocity (m/s)')
-plt.title('Velocity vs Time')
-plt.legend()
-
-plt.tight_layout()
 plt.show()
+

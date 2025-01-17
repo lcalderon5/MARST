@@ -24,15 +24,15 @@ def sc_heigth(pos):
     """
     # Calculate radius and height
     theta = np.arctan(pos[2] / np.sqrt(pos[0] **2 + pos[1] **2))
-    earth_radius = bd.Earth.radius_equator - abs(theta) / (2*np.pi) * (bd.Earth.radius_equator - bd.Earth.radius_polar)
+    earth_radius = bd.earth.radius_equator - abs(theta) / (2*np.pi) * (bd.earth.radius_equator - bd.earth.radius_polar)
     height = np.linalg.norm(pos) - earth_radius
     return height
 
 
 # Function to set intial conditions
-@njit
-def orbital_elements_to_cartesian(mu, peri, apo, i, raan, arg_periapsis, init_anomaly):
-
+# @njit
+def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float, 
+                                  raan: float, arg_periapsis: float, init_anomaly: float):
     """
     This function converts orbital elements to cartesian coordinates.
 
@@ -48,7 +48,6 @@ def orbital_elements_to_cartesian(mu, peri, apo, i, raan, arg_periapsis, init_an
     Returns:
         r_inertial: The position vector in the inertial frame
         v_inertial: The velocity vector in the inertial frame
-
     """
 
     # Convert some stuff to radians
@@ -66,37 +65,27 @@ def orbital_elements_to_cartesian(mu, peri, apo, i, raan, arg_periapsis, init_an
     r = p / (1 + e * np.cos(init_anomaly))  # Radius, km
 
     # Position vector in perifocal coordinates
-    r_peri = np.array([
-        r * np.cos(init_anomaly),
-        r * np.sin(init_anomaly),
-        0
-    ])
+    r_peri = np.array([r * np.cos(init_anomaly),
+                       r * np.sin(init_anomaly),
+                       0.0])
 
     # Velocity vector in perifocal coordinates
-    v_peri = np.array([
-        -np.sqrt(mu / p) * np.sin(init_anomaly),
-        np.sqrt(mu / p) * (e + np.cos(init_anomaly)),
-        0
-    ])
+    v_peri = np.array([-np.sqrt(mu / p) * np.sin(init_anomaly),
+                       np.sqrt(mu / p) * (e + np.cos(init_anomaly)),
+                       0.0])
 
     # Rotation matrices
-    R3_raan = np.array([
-        [np.cos(-raan), np.sin(-raan), 0],
-        [-np.sin(-raan), np.cos(-raan), 0],
-        [0, 0, 1]
-    ])
+    R3_raan = np.array([[np.cos(-raan), np.sin(-raan), 0.0],
+                        [-np.sin(-raan), np.cos(-raan), 0.0],
+                        [0.0, 0.0, 1.0]])
 
-    R1_incl = np.array([
-        [1, 0, 0],
-        [0, np.cos(-i), np.sin(-i)],
-        [0, -np.sin(-i), np.cos(-i)]
-    ])
+    R1_incl = np.array([[1.0, 0.0, 0.0],
+                        [0.0, np.cos(-i), np.sin(-i)],
+                        [0.0, -np.sin(-i), np.cos(-i)]])
 
-    R3_arg_peri = np.array([
-        [np.cos(-arg_periapsis), np.sin(-arg_periapsis), 0],
-        [-np.sin(-arg_periapsis), np.cos(-arg_periapsis), 0],
-        [0, 0, 1]
-    ])
+    R3_arg_peri = np.array([[np.cos(-arg_periapsis), np.sin(-arg_periapsis), 0.0],
+                            [-np.sin(-arg_periapsis), np.cos(-arg_periapsis), 0.0],
+                            [0.0, 0.0, 1.0]])
 
     # Correct combined rotation matrix
     R_total = R3_arg_peri @ R1_incl @ R3_raan
@@ -106,3 +95,4 @@ def orbital_elements_to_cartesian(mu, peri, apo, i, raan, arg_periapsis, init_an
     v_inertial = R_total @ v_peri
 
     return r_inertial, v_inertial
+

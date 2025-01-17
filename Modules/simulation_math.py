@@ -1,14 +1,19 @@
 # Lucas Calderon
 # This file contains the numerical methods and math to run the sim
+import sys
+import os
+
+# Add the project root directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import numpy as np
 from numba import njit
-from dynamics import acceleration
-from Config.spacecraft import Spacecraft
+from Modules.dynamics import acceleration
+from Config.spacecraft import spacecraft
 
 
 @njit
-def run_simulation(n_max, dt, Method = "euler"):
+def run_simulation(n_max: int, dt:float, Method = "euler"):
     """
     This function runs the simulation.
 
@@ -27,15 +32,15 @@ def run_simulation(n_max, dt, Method = "euler"):
     """
 
     # Create lists
-    pos_hist = np.zeros[(n_max, 3)] # Ordered in the following way: [x, y, z]
-    vel_hist = np.zeros[(n_max, 3)] # Ordered in the following way: [v_x, v_y, v_z]
-    acc_hist = np.zeros[(n_max, 3)] # Ordered in the following way: [a_x, a_y, a_z]
-    flows_hist = np.zeros[(n_max, 8)] # This is the composition of the air captured by the spacecraft, ordered in the following way: [air_mass, O_num, N2_num, O2_num, He_num, Ar_num, H_num, N_num]
+    pos_hist = np.zeros((n_max, 3)) # Ordered in the following way: [x, y, z]
+    vel_hist = np.zeros((n_max, 3)) # Ordered in the following way: [v_x, v_y, v_z]
+    acc_hist = np.zeros((n_max, 3)) # Ordered in the following way: [a_x, a_y, a_z]
+    flows_hist = np.zeros((n_max, 8)) # This is the composition of the air captured by the spacecraft, ordered in the following way: [air_mass, O_num, N2_num, O2_num, He_num, Ar_num, H_num, N_num]
     atmos_time = 0
 
     # Apply initial conditions
-    pos_hist[0] = Spacecraft.initial_position
-    vel_hist[0] = Spacecraft.initial_velocity
+    pos_hist[0] = spacecraft.initial_position
+    vel_hist[0] = spacecraft.initial_velocity
 
     # Run the simulation
     if Method == "euler": # Simple euler implementation

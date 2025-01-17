@@ -1,9 +1,13 @@
 # Lucas Calderon
 # This file contains the data for the spacecraft that will be simulated.
+import sys
+import os
 
-import numpy as np
+# Add the project root directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from collections import namedtuple
-from bodies_data import Earth
+from Config.bodies_data import earth
 from Modules.helper import orbital_elements_to_cartesian
 
 # Using named tuples to make it more numba friendly, they are immutable and faster than dictionaries
@@ -12,21 +16,21 @@ from Modules.helper import orbital_elements_to_cartesian
 # --------- INPUTS ------------
 
 # Initial Orbit
-Periapsis = 100 # h in km
-Apoapsis = 5000 # h in km
-Inclination = 10    # Inclination in degrees
+Periapsis = 400 # h in km
+Apoapsis = 400 # h in km
+Inclination = 80    # Inclination in degrees
 Rigth_Ascension_node = 30 # Right Ascension of the Ascending Node in degrees
 Argument_periapsis = 40 # deg
 Initial_anomaly = 180 # deg
 
 # Calculate semi-major axis and eccentricity
-Apoapsis = Apoapsis + Earth.radius_equator
-Periapsis = Periapsis + Earth.radius_equator
+Apoapsis = Apoapsis + earth.radius_equator
+Periapsis = Periapsis + earth.radius_equator
 a = (Apoapsis + Periapsis) / 2 # in km
 e = (Apoapsis - Periapsis) / (Apoapsis + Periapsis) # unitless
 
 # Convert these to a position and velocity vector
-mu = Earth.gravitational_parameter # This can be changed depending on the body that the spacecraft is initially orbiting
+mu = earth.gravitational_parameter # This can be changed depending on the body that the spacecraft is initially orbiting 
 initial_position, initial_velocity = orbital_elements_to_cartesian(mu, Periapsis, Apoapsis, Inclination, Rigth_Ascension_node, Argument_periapsis, Initial_anomaly)
 
 
@@ -37,7 +41,7 @@ initial_position, initial_velocity = orbital_elements_to_cartesian(mu, Periapsis
 
 Spacecraft = namedtuple('MARST', ['name', 'mass', 'C_D', 'A', 'A_intake', 'eff_in', 'initial_position', 'initial_velocity'])
 
-Spacecraft = Spacecraft(
+spacecraft = Spacecraft(
                     name="MARST",
                     mass=5000,  # kg
                     C_D=4,  # Drag coefficient

@@ -1,56 +1,18 @@
 # Lucas Calderon
 # This file contains functions to plot or visualize the results of the simulation.
 
+import sys
+import os
+
+# Add the project root directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import plotly.graph_objects as go
 
 # Plotting functions
-
-def plot_orbit_matlplotilb(motions, savepath=None):
-
-    fig = plt.figure()
-    ax = fig.add_subplot(1,1,1, projection='3d')
-    max_range = 2*max(abs(max(motions["x"])), abs(max(motions["y"])), abs(max(motions["z"])))
-
-    # Plot Orbit
-    ax.plot(motions["x"], motions["y"], motions["z"], c = 'red', label = motions["name"])  
-
-    # Create a sphere for Earth
-    earth_radius = earth_radius = 6371  # km
-    u = np.linspace(0, 2 * np.pi, 100)
-    v = np.linspace(0, np.pi, 100)
-    x = earth_radius * np.outer(np.cos(u), np.sin(v))
-    y = earth_radius * np.outer(np.sin(u), np.sin(v))
-    z = earth_radius * np.outer(np.ones(np.size(u)), np.cos(v))
-
-    # Plot Earth
-    ax.plot_surface(x, y, z, color='green', alpha=1, shade=True)
-
-    # Plot Atmosphere
-    gradients = 10
-    for i, alpha in enumerate(np.linspace(0.1, 0.01, gradients)):  # Gradient transparency
-        radius = earth_radius + (750 / gradients) * i
-        x_layer = radius * np.outer(np.cos(u), np.sin(v))
-        y_layer = radius * np.outer(np.sin(u), np.sin(v))
-        z_layer = radius * np.outer(np.ones(np.size(u)), np.cos(v))
-        ax.plot_surface(x_layer, y_layer, z_layer, color='blue', alpha=alpha, shade=True)
-
-    # Axis adjustment   
-    ax.set_xlim([-max_range,max_range])    
-    ax.set_ylim([-max_range,max_range])
-    ax.set_zlim([-max_range,max_range]) 
-    ax.set_box_aspect([1, 1, 1])  # Equal scaling for x, y, z axes
-
-    ax.legend() 
-
-    if savepath:
-        plt.savefig(savepath)
-    
-    else:
-        plt.show()
-
 
 def plot_orbit_plotly(motions, atmosphere_altitude=750, show_periandapo=False, atmoslayers=False):
 
@@ -66,15 +28,15 @@ def plot_orbit_plotly(motions, atmosphere_altitude=750, show_periandapo=False, a
     atmosphere_radius = earth_radius + atmosphere_altitude
 
     # Calculate apo and periapsis NEEDS REVISION FOR DRAG ORBITS
-    radii = np.sqrt(np.array(motions["x"])**2 + np.array(motions["y"])**2 + np.array(motions["z"])**2)
+    radii = np.sqrt(np.array(motions[:,0])**2 + np.array(motions[:,1])**2 + np.array(motions[:,2])**2)
     periapsis_idx = np.argmin(radii)
     apoapsis_idx = np.argmax(radii)
-    periapsis_point = (motions["x"][periapsis_idx], motions["y"][periapsis_idx], motions["z"][periapsis_idx])
-    apoapsis_point = (motions["x"][apoapsis_idx], motions["y"][apoapsis_idx], motions["z"][apoapsis_idx])
+    periapsis_point = (motions[:,0][periapsis_idx], motions[:,1][periapsis_idx], motions[:,2][periapsis_idx])
+    apoapsis_point = (motions[:,0][apoapsis_idx], motions[:,1][apoapsis_idx], motions[:,2][apoapsis_idx])
 
     # Split orbit into atmosphere and space
     is_in_atmosphere = radii <= atmosphere_radius
-    x_orbit, y_orbit, z_orbit = np.array(motions["x"]), np.array(motions["y"]), np.array(motions["z"])
+    x_orbit, y_orbit, z_orbit = motions[:,0], motions[:,1], motions[:,2]
 
     def find_segments(mask):
         segments = []
@@ -236,9 +198,9 @@ def plot_orbit_plotly_animated(motions, atmosphere_altitude=750):
     atmosphere_radius = earth_radius + atmosphere_altitude
 
     # Orbital path
-    x_orbit = np.array(motions["x"])[::10]  # Downsample data
-    y_orbit = np.array(motions["y"])[::10]
-    z_orbit = np.array(motions["z"])[::10]
+    x_orbit = np.array(motions[:,0])[::10]  # Downsample data
+    y_orbit = np.array(motions[:,1])[::10]
+    z_orbit = np.array(motions[:,2])[::10]
 
     # Create figure
     fig = go.Figure()
@@ -376,3 +338,4 @@ def plot_atmos_data(flows_hist, savepath=None):
         plt.savefig(savepath)
     else:
         plt.show()
+
