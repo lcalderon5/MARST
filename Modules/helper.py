@@ -25,7 +25,7 @@ def sc_heigth(pos):
     # Calculate radius and height
     theta = np.arctan(pos[2] / np.sqrt(pos[0] **2 + pos[1] **2))
     earth_radius = bd.earth.radius_equator - abs(theta) / (2*np.pi) * (bd.earth.radius_equator - bd.earth.radius_polar)
-    height = np.linalg.norm(pos) - earth_radius
+    height = np.sqrt(np.sum(pos**2)) - earth_radius
     return height
 
 

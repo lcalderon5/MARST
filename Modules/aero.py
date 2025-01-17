@@ -27,11 +27,13 @@ def atmos_rot(position):
     r_mag = position / np.sqrt(np.sum(position**2))
 
     # Speed Calculations
-    Earth_radius = earth.radius_equator
-    Earth_rot_speed = Earth_radius * 2 * np.pi / earth.day # Km/s
+    theta = np.arctan(position[2] / np.sqrt(position[0] **2 + position[1] **2))
+    earth_radius_true = earth.radius_equator - abs(theta) / (2*np.pi) * (earth.radius_equator - earth.radius_polar)
+    rot_speed = earth_radius_true * 2 * np.pi / earth.day * np.cos(theta) # Km/s
+
     # Exponential decay based on scale height
     scale_height = 745  # km
-    atmos_speed = Earth_rot_speed * np.exp(-(r_mag - Earth_radius) / scale_height)
+    atmos_speed = rot_speed * np.exp(-(r_mag - earth_radius_true) / scale_height)
 
 
     # Vector shenaningans
