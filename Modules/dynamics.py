@@ -8,7 +8,7 @@ from Config import bodies_data as bd
 
 # Acceleration function
 @njit
-def acceleration(position, atmos=True):
+def acceleration(position, velocity, atmos=True):
 
     """
     This function calculates the acceleration of the spacecraft.

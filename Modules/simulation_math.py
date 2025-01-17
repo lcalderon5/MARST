@@ -34,13 +34,14 @@ def run_simulation(n_max, dt, Method = "euler"):
     atmos_time = 0
 
     # Apply initial conditions
-
+    pos_hist[0] = np.array([0, 0, 0])
+    vel_hist[0] = np.array([0, 0, 0])
 
     # Run the simulation
     if Method == "euler":
         for i in range(1, n_max):
 
-            acc = acceleration(pos_hist[i-1])
+            acc = acceleration(pos_hist[i-1], vel_hist[i-1])
             acc_hist[i] = acc
 
             vel_hist[i] = vel_hist[i-1] + acc * dt
@@ -49,10 +50,10 @@ def run_simulation(n_max, dt, Method = "euler"):
     elif Method == "KR4":
         for i in range(1, n_max):
 
-            k1 = acceleration(pos_hist[i-1])
-            k2 = acceleration(pos_hist[i-1] + k1 * dt / 2)
-            k3 = acceleration(pos_hist[i-1] + k2 * dt / 2)
-            k4 = acceleration(pos_hist[i-1] + k3 * dt)
+            k1 = acceleration(pos_hist[i-1], vel_hist[i-1])
+            k2 = acceleration(pos_hist[i-1] + k1 * dt / 2, vel_hist[i-1] + k1 * dt / 2)
+            k3 = acceleration(pos_hist[i-1] + k2 * dt / 2, vel_hist[i-1] + k2 * dt / 2)
+            k4 = acceleration(pos_hist[i-1] + k3 * dt, vel_hist[i-1] + k3 * dt)
 
             acc_hist[i] = k1
 
