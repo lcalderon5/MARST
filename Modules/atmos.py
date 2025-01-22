@@ -40,7 +40,8 @@ def atmos_splines(filename: str=r'Modules\01-01-2025 N43.3W3 NRLMSIS-00.txt') ->
 def atmos_data(filename=r'C:\Users\lucas\Desktop\Code Adventures\MARST\MARST\Modules\01-01-2025 N43.3W3 NRLMSIS-00.txt'):
 
     # Load data with numpy
-    data = np.genfromtxt(filename, delimiter=None, names=True)
+    data = np.genfromtxt(filename, delimiter=None, names=True, dtype=None)
+    print(data.dtype.names)
 
     # Extract colums as np arrays, and convert units
     h = np.array(data['Heit(km)'], dtype=np.float64)
