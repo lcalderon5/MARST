@@ -70,10 +70,12 @@ def acceleration(position:np.array, velocity:np.array, body:str='Earth') -> np.a
     # Logic for the celestial body
     atmos = False
     if body == 'Earth':
-        body_data = bd.earth
+        mu = bd.earth.gravitational_parameter
+        J2 = bd.earth.J2
+        R_e = bd.earth.radius_equator
         atmos = True
     elif body == 'Moon':
-        body_data = bd.moon
+        mu = bd.moon.gravitational_parameter
     else:
         raise ValueError('The body is not in the database.')
 
@@ -83,24 +85,19 @@ def acceleration(position:np.array, velocity:np.array, body:str='Earth') -> np.a
     h = sc_heigth(position)
 
     # Acceleration due to gravity
-    a_total = -body_data.gravitational_parameter / r**2
+    a_total = - mu / r**3 * position
 
     # Acceleration due to perturbations
     if body == 'Earth':
-        a_r = -1.5 * body_data.J2 * (body_data.radius_equator / r)**2 * (3 * np.sin(theta)**2 - 1)
-        a_theta = -3 * body_data.gravitational_parameter / r**4 * body_data.J2 * body_data.radius_equator**2 * np.cos(theta) * np.sin(theta)
+        a_r = 1.5 * J2 * (R_e / r)**2 * (3 * np.sin(theta)**2 - 1) * mu / r**3 * position
+        h_cross = np.cross(np.cross(position, velocity), position)
+        h_cross_hat =   h_cross / np.sqrt(np.sum(h_cross**2)) # this is a unti vector to make the latitudinal component vectorial
+        a_theta = -3 * mu / r**4 * J2 * R_e**2 * np.cos(theta) * np.sin(theta) * h_cross_hat
         a_total = a_total + a_r + a_theta
 
     # Acceleration due to drag
     if h < 745 and atmos is True:
         a_drag = drag_acceleration(position, velocity, heights, rho)
         a_total += a_drag
-    
-    # Unit vectors in spherical coordinates
-    r_hat = position / r  # radial unit vectorr
 
-    # Gravitational acceleration in Cartesian coordinates
-    a_r_vec = a_total * r_hat  # Radial component
-
-
-    return a_r_vec
+    return a_total
