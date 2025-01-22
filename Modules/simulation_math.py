@@ -71,10 +71,16 @@ def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
             k4_r = vel_hist[i-1] + k3_v * dt
 
             pos_hist[i] = pos_hist[i-1] + (k1_r + 2*k2_r + 2*k3_r + k4_r) / 6 * dt
-
-            if sc_heigth(pos_hist[i]) < 69: # Check for unrealistic values
-                print("The spacecraft has crashed")
-                break
+            
+            if sc_heigth(pos_hist[i]) < 750:
+                atmos_time += dt
+                # Calculate the composition of the air captured by the spacecraft
+                flows_hist[i] = [0, 0, 0, 0, 0, 0, 0, 0] # This is a placeholder for now
+                
+                # Check for crash
+                if sc_heigth(pos_hist[i]) < 69: # Check for unrealistic values
+                    print("The spacecraft has crashed")
+                    break
 
     elif Method == "Verlet":
         # Initial updates

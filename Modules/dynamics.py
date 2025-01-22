@@ -79,9 +79,9 @@ def acceleration(position:np.array, velocity:np.array, body:str='Earth') -> np.a
     else:
         raise ValueError('The body is not in the database.')
 
-    # Calculate radius, latitude and height
+    # Calculate radius, colatitude and height
     r = np.sqrt(np.sum(position**2))
-    theta = np.arcsin(position[2] / r)
+    theta = np.arccos(position[2] / r)
     h = sc_heigth(position)
 
     # Acceleration due to gravity
@@ -89,15 +89,11 @@ def acceleration(position:np.array, velocity:np.array, body:str='Earth') -> np.a
 
     # Acceleration due to perturbations
     if body == 'Earth':
-        a_r = 1.5 * J2 * (R_e / r)**2 * (3 * np.sin(theta)**2 - 1) * mu / r**3 * position
-        h_cross = np.cross(np.cross(position, velocity), position)
-        h_cross_hat =   h_cross / np.sqrt(np.sum(h_cross**2)) # this is a unti vector to make the latitudinal component vectorial
-        a_theta = -3 * mu / r**4 * J2 * R_e**2 * np.cos(theta) * np.sin(theta) * h_cross_hat
-        a_total = a_total + a_r + a_theta
+        a_total += -3 * mu * J2 * R_e**2 / r**5 * np.array([position[0] * (5 * position[2]**2 / r**2 - 1), position[1] * (5 * position[2]**2 / r**2 - 1), position[2] * (5 * position[2]**2 / r**2 - 3)])
 
     # Acceleration due to drag
     if h < 745 and atmos is True:
         a_drag = drag_acceleration(position, velocity, heights, rho)
-        a_total += a_drag
+        a_total += a_drag 
 
     return a_total
