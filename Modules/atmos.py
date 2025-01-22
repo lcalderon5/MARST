@@ -61,35 +61,36 @@ def atmos_data(filename=r'C:\Users\lucas\Desktop\Code Adventures\MARST\MARST\Mod
 h, O, N2, O2, air, T, He, Ar, H, N = atmos_data()
 
 # Plot data
-import matplotlib.pyplot as plt
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
 
-# Plot data
-plt.figure(figsize=(10, 8))
+    # Plot data
+    plt.figure(figsize=(10, 8))
 
-plt.subplot(2, 1, 1)
-plt.plot(h, O, label='O')
-plt.plot(h, N2, label='N2')
-plt.plot(h, O2, label='O2')
-plt.plot(h, He, label='He')
-plt.plot(h, Ar, label='Ar')
-plt.plot(h, H, label='H')
-plt.plot(h, N, label='N')
-plt.axhline(0, color='black', lw=0.5)
-plt.yscale('log')
-plt.xlabel('Height (km)')
-plt.ylabel('Density (molecules/m3)')
-plt.legend()
-plt.title('Density of Different Gases vs Height')
+    plt.subplot(2, 1, 1)
+    plt.plot(h, O, label='O')
+    plt.plot(h, N2, label='N2')
+    plt.plot(h, O2, label='O2')
+    plt.plot(h, He, label='He')
+    plt.plot(h, Ar, label='Ar')
+    plt.plot(h, H, label='H')
+    plt.plot(h, N, label='N')
+    plt.axhline(0, color='black', lw=0.5)
+    plt.yscale('log')
+    plt.xlabel('Height (km)')
+    plt.ylabel('Density (molecules/m3)')
+    plt.legend()
+    plt.title('Density of Different Gases vs Height')
 
-plt.subplot(2, 1, 2)
-plt.plot(h, air, label='Air Density')
-plt.axhline(0, color='black', lw=0.5)
-plt.yscale('log')
-plt.xlabel('Height (km)')
-plt.ylabel('Air Density (Kg/m3)')
-plt.legend()
-plt.title('Air Density vs Height')
+    plt.subplot(2, 1, 2)
+    plt.plot(h, air, label='Air Density')
+    plt.axhline(0, color='black', lw=0.5)
+    plt.yscale('log')
+    plt.xlabel('Height (km)')
+    plt.ylabel('Air Density (Kg/m3)')
+    plt.legend()
+    plt.title('Air Density vs Height')
 
 
-plt.tight_layout()
-plt.show()
+    plt.tight_layout()
+    plt.show()
