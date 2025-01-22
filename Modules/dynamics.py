@@ -10,6 +10,11 @@ import numpy as np
 from numba import njit
 from Modules.helper import sc_heigth
 from Config import bodies_data as bd
+from Modules.aero import drag_acceleration
+from Modules.atmos import h, air
+
+heights = h
+rho = air
 
 # Acceleration function
 @njit
@@ -45,10 +50,10 @@ def acceleration(position:np.array, velocity:np.array, atmos:bool=True) -> np.ar
     a_total = a_r_vec + a_theta_vec # This is a three element vector, containing the x, y and z components of the acceleration
 
     # Acceleration due to drag
-    # if h < 750 and atmos is True: # Number is the atmos model height in km.
-    #     pass
+    if h < 750 and atmos is True: # Number is the atmos model height in km.
+        a_drag = drag_acceleration(position, velocity, heights, rho)
+        a_total += a_drag
     
-
     return a_total
 
 

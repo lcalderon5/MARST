@@ -8,22 +8,24 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import numpy as np
+from numba import njit
 from Config.spacecraft import spacecraft
 from Config.bodies_data import earth
-from Modules.helper import sc_heigth
+from Modules.helper import sc_heigth, linear_interp
 
 # Rotating atmosphere model
 # Because im a bit dumb, for now I'm just going to assume it has the earths rotational velocity in the beggining 
 # and that it tapers off to 0 at 750 km in an exponential fashion (Made this shit up)
-# No vertical atmospheric movement, no crosswind, no coriolis shit. Maybe in the future.
+# No vertical atmospheric movement, no crosswind, no coriolis shit. Maybe in the future.44
 
+@njit
 def atmos_rot(position):
 
     if np.sqrt(position[0]**2 + position[1]**2) <=10:
-        return np.zeros(1, 3)
+        return np.zeros(3)
 
     # Constants
-    atmos_velocity = np.zeros(1, 3)
+    atmos_velocity = np.zeros(3)
     r_mag = position / np.sqrt(np.sum(position**2))
 
     # Speed Calculations
@@ -35,11 +37,10 @@ def atmos_rot(position):
     scale_height = 745  # km
     atmos_speed = rot_speed * np.exp(-(r_mag - earth_radius_true) / scale_height)
 
-
     # Vector shenaningans
     k = - np.array([0, 0, 1])
     v_perp = np.cross(k, position)
-    unit_vector = v_perp / np.linalg.norm(v_perp)
+    unit_vector = v_perp / np.sqrt(np.sum(v_perp**2))
 
     # Vectorial velocity
     velocity = atmos_speed * unit_vector
@@ -48,3 +49,24 @@ def atmos_rot(position):
     atmos_velocity[2] = 0
 
     return atmos_velocity # Given in km/s
+
+
+@njit
+def calculate_density(h, altitudes, densities):
+    return linear_interp(h, altitudes, densities)
+
+
+@njit
+def drag_acceleration(position:np.array, velocity:np.array, heights:np.array, air:np.array) -> np.array:
+    
+    # Density
+    rho = calculate_density(sc_heigth(position), heights, air)
+
+    # Substract atmos velocities
+    atmos_velocity = atmos_rot(position)
+    velocity_rel = velocity - atmos_velocity
+
+    # Calculate the drag acceleration
+    drag_a = -0.5 * spacecraft.C_D * spacecraft.A * rho * np.sqrt(np.sum(velocity_rel**2)) * velocity_rel / spacecraft.mass
+
+    return drag_a

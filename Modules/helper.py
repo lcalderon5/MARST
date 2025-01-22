@@ -17,10 +17,10 @@ def sc_heigth(pos):
     This function calculates the height of the spacecraft, taking into account the earth's change in radius over its latitude.
 
     Inputs:
-        pos: The position of the spacecraft
+        pos: The position of the spacecraft as a 3 element numpy array
 
     Returns:
-        height: The height of the spacecraft
+        height: The height of the spacecraft as a scalar
     """
     # Calculate radius and height
     theta = np.arctan(pos[2] / np.sqrt(pos[0] **2 + pos[1] **2))
@@ -95,4 +95,13 @@ def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float,
     v_inertial = R_total @ v_peri
 
     return r_inertial, v_inertial
+
+
+# Linear interpolation in numba
+@njit
+def linear_interp(x, xp, fp):
+    for i in range(len(xp) - 1):
+        if xp[i] <= x < xp[i + 1]:
+            return fp[i] + (x - xp[i]) * (fp[i + 1] - fp[i]) / (xp[i + 1] - xp[i])
+    return 0.0  # Out of range
 
