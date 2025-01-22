@@ -37,7 +37,7 @@ def atmos_splines(filename: str=r'Modules\01-01-2025 N43.3W3 NRLMSIS-00.txt') ->
     return splines
 
 # Numba compatible function
-def atmos_data(filename='01-01-2025 N43.3W3 NRLMSIS-00.txt'):
+def atmos_data(filename=r'C:\Users\lucas\Desktop\Code Adventures\MARST\MARST\Modules\01-01-2025 N43.3W3 NRLMSIS-00.txt'):
 
     # Load data with numpy
     data = np.genfromtxt(filename, delimiter=None, names=True)
