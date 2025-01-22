@@ -36,26 +36,60 @@ def atmos_splines(filename: str=r'Modules\01-01-2025 N43.3W3 NRLMSIS-00.txt') ->
     
     return splines
 
-# Numba compatible function
+
+# Return numpy arrays instead of pandas series
 def atmos_data(filename=r'C:\Users\lucas\Desktop\Code Adventures\MARST\MARST\Modules\01-01-2025 N43.3W3 NRLMSIS-00.txt'):
+    # Use pandas to read the space-separated file
+    df = pd.read_csv(filename, sep='\s+')
 
-    # Load data with numpy
-    data = np.genfromtxt(filename, delimiter=None, names=True, dtype=None)
-    print(data.dtype.names)
-
-    # Extract colums as np arrays, and convert units
-    h = np.array(data['Heit(km)'], dtype=np.float64)
-    O = np.array(data['Oden(cm-3)'], dtype=np.float64) * 1e6 # in molecules/m3
-    N2 = np.array(data['N2den(cm-3)'], dtype=np.float64) * 1e6 # in molecules/m3
-    O2 = np.array(data['O2den(cm-3)'], dtype=np.float64) * 1e6 # in molecules/m3
-    air = np.array(data['air(gm/cm3)'], dtype=np.float64) * 1000 # in Kg/m3
-    T = np.array(data['T(K)'], dtype=np.float64)
-    He = np.array(data['Heden(cm-3)'], dtype=np.float64) * 1e6 # in molecules/m3
-    Ar = np.array(data['Arden(cm-3)'], dtype=np.float64) * 1e6 # in molecules/m3
-    H = np.array(data['Hden(cm-3)'], dtype=np.float64) * 1e6 # in molecules/m3
-    N = np.array(data['Nden(cm-3)'], dtype=np.float64) * 1e6 # in molecules/m3
+    # Extract columns and convert units
+    h = df['Heit(km)'].to_numpy()
+    O = df['Oden(cm-3)'].to_numpy() * 1e6  # in molecules/m3
+    N2 = df['N2den(cm-3)'].to_numpy() * 1e6  # in molecules/m3
+    O2 = df['O2den(cm-3)'].to_numpy() * 1e6  # in molecules/m3
+    air = df['air(gm/cm3)'].to_numpy() * 1000  # in Kg/m3
+    T = df['T(K)'].to_numpy()
+    He = df['Heden(cm-3)'].to_numpy() * 1e6  # in molecules/m3
+    Ar = df['Arden(cm-3)'].to_numpy() * 1e6  # in molecules/m3
+    H = df['Hden(cm-3)'].to_numpy() * 1e6  # in molecules/m3
+    N = df['Nden(cm-3)'].to_numpy() * 1e6  # in molecules/m3
 
     return h, O, N2, O2, air, T, He, Ar, H, N
 
+
 # Load data
 h, O, N2, O2, air, T, He, Ar, H, N = atmos_data()
+
+# Plot data
+import matplotlib.pyplot as plt
+
+# Plot data
+plt.figure(figsize=(10, 8))
+
+plt.subplot(2, 1, 1)
+plt.plot(h, O, label='O')
+plt.plot(h, N2, label='N2')
+plt.plot(h, O2, label='O2')
+plt.plot(h, He, label='He')
+plt.plot(h, Ar, label='Ar')
+plt.plot(h, H, label='H')
+plt.plot(h, N, label='N')
+plt.axhline(0, color='black', lw=0.5)
+plt.yscale('log')
+plt.xlabel('Height (km)')
+plt.ylabel('Density (molecules/m3)')
+plt.legend()
+plt.title('Density of Different Gases vs Height')
+
+plt.subplot(2, 1, 2)
+plt.plot(h, air, label='Air Density')
+plt.axhline(0, color='black', lw=0.5)
+plt.yscale('log')
+plt.xlabel('Height (km)')
+plt.ylabel('Air Density (Kg/m3)')
+plt.legend()
+plt.title('Air Density vs Height')
+
+
+plt.tight_layout()
+plt.show()
