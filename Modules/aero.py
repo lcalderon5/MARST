@@ -21,44 +21,25 @@ def atmos_rot(position):
     if np.sqrt(position[0]**2 + position[1]**2) <=10:
         return np.zeros(3)
 
-    # Constants
-    atmos_velocity = np.zeros(3)
+    rot_speed = 2 * np.pi / earth.day
 
-    # Speed Calculations
-    theta = np.arctan(position[2] / np.sqrt(position[0] **2 + position[1] **2))
-    earth_radius_true = earth.radius_equator - abs(theta) / (2*np.pi) * (earth.radius_equator - earth.radius_polar)
-    rot_speed = earth_radius_true * 2 * np.pi / earth.day * np.cos(theta) # Km/s
+    # Angular velocity vector 
+    omega_vec = np.array([0, 0, rot_speed])
 
-    # Vector shenaningans
-    k = - np.array([0, 0, 1])
-    v_perp = np.cross(k, position)
-    unit_vector = v_perp / norm(v_perp)
-
-    # Vectorial velocity
-    velocity = rot_speed * unit_vector
-    atmos_velocity[0] = velocity[0]
-    atmos_velocity[1] = velocity[1]
-    atmos_velocity[2] = 0
-
-    return atmos_velocity # Given in km/s
-
-
-@njit
-def calculate_density(h, altitudes, densities):
-    return linear_interp(h, altitudes, densities)
+    return np.cross(omega_vec, position)
 
 
 @njit
 def drag_acceleration(position:np.array, velocity:np.array, heights:np.array, air:np.array) -> np.array:
     
     # Density
-    rho = calculate_density(sc_heigth(position), heights, air)
+    rho = linear_interp(sc_heigth(position), heights, air) # in kg/m^3, interpolated from the data in h and air
 
     # Substract atmos velocities
     atmos_velocity = atmos_rot(position)
     velocity_rel = velocity - atmos_velocity
 
     # Calculate the drag acceleration
-    drag_a = -0.5 * spacecraft.C_D * spacecraft.A * rho * norm(velocity_rel) * velocity_rel / spacecraft.mass # in km/s^2
+    drag_a = -0.5 * spacecraft.C_D * spacecraft.A * rho * norm(velocity_rel) * velocity_rel / spacecraft.mass * 1000 # in km/s^2 (remember that the density is in kg/m^3, A in m^2 and velocity in km/s)
 
     return drag_a

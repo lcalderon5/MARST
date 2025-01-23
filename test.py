@@ -1,19 +1,23 @@
-from Modules.dynamics import acceleration
-from numba import njit
+from Modules.atmos import h, air
+from Modules.helper import linear_interp
 import numpy as np
-import timeit
+import matplotlib.pyplot as plt
 
-# Test the acceleration function with and without numba
+plt.plot(h, air)
+plt.yscale('log')
+plt.title('Density vs Height')
+plt.grid()
+plt.show()
 
-# Define the initial conditions
-position = np.array([10000, 0, 0])
-velocity = np.array([0, 0, 0])
+# Now with interpolation
+heights = np.linspace(0, 740, 1000)
+rho = np.zeros(1000)
 
-# Test the function without numba
-print("Without numba:")
-start = timeit.default_timer()
-for i in range(100000):
-    acceleration(position, velocity)
+for i in range(1000):
+    rho[i] = linear_interp(heights[i], h, air)
 
-print("Time taken:", timeit.default_timer() - start)
-
+plt.plot(heights, rho)
+plt.yscale('log')
+plt.title('Density vs Height')
+plt.grid()
+plt.show()

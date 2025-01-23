@@ -124,6 +124,7 @@ def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float,
 
 
 # Linear interpolation in numba
+# This function finds the correspoinding value of x in the xp array and returns the interpolated value of fp
 @njit
 def linear_interp(x, xp, fp):
     for i in range(len(xp) - 1):

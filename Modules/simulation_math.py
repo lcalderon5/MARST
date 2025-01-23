@@ -10,7 +10,8 @@ import numpy as np
 from numba import njit
 from Modules.dynamics import acceleration
 from Config.spacecraft import spacecraft
-from Modules.helper import sc_heigth
+from Config.bodies_data import moon
+from Modules.helper import sc_heigth, distance, orbital_elements_to_cartesian
 
 # Run simulation function
 @njit
@@ -71,7 +72,7 @@ def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
 
             pos_hist[i] = pos_hist[i-1] + (k1_r + 2*k2_r + 2*k3_r + k4_r) / 6 * dt
             
-            if sc_heigth(pos_hist[i]) < 750:
+            if sc_heigth(pos_hist[i]) < 745:
                 atmos_time += dt
                 # Calculate the composition of the air captured by the spacecraft
                 flows_hist[i] = [0, 0, 0, 0, 0, 0, 0, 0] # This is a placeholder for now
@@ -116,8 +117,10 @@ def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
 
 
 # New function to run the simulation WORK IN PROGRESS
+# Load the moons data
+
 @njit
-def run_simulation_new(n_max: int, dt:float):
+def run_coast_phase(n_max: int, dt:float):
     """
     This function runs the simulation.
 
@@ -139,13 +142,23 @@ def run_simulation_new(n_max: int, dt:float):
     acc_hist = np.zeros((n_max, 3)) # Ordered in the following way: [a_x, a_y, a_z]
     flows_hist = np.zeros((n_max, 8)) # This is the composition of the air captured by the spacecraft, ordered in the following way: [air_mass, O_num, N2_num, O2_num, He_num, Ar_num, H_num, N_num]
     atmos_time = 0
+    t = 0
 
     # Apply initial conditions
     pos_hist[0] = spacecraft.initial_position
     vel_hist[0] = spacecraft.initial_velocity
 
+    # Check for the body
+    body = 'Earth' # Body is a placeholder for now, it will entail passing the earth's
+    # If the spacecraft is within the SOI of the moon, change the body to the moon
+    moon_pos, _ = orbital_elements_to_cartesian(moon.gravitational_parameter, moon.periapsis, moon.apoapsis, moon.inclination, moon.raan, moon.arg_periapsis, moon.init_anomaly, 0)
+    if distance(moon_pos, pos_hist[i]) < moon.SOI:
+        body = 'Moon'
 
     for i in range(1, n_max):
+
+        t += dt
+
         # RK4 for velocity
         k1_v = acceleration(pos_hist[i-1], vel_hist[i-1])
         k2_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt / 2, vel_hist[i-1] + k1_v * dt / 2)
@@ -164,7 +177,7 @@ def run_simulation_new(n_max: int, dt:float):
         pos_hist[i] = pos_hist[i-1] + (k1_r + 2*k2_r + 2*k3_r + k4_r) / 6 * dt
         
         # Atmosphere check
-        if sc_heigth(pos_hist[i]) < 750:
+        if sc_heigth(pos_hist[i]) < 745:
             atmos_time += dt
             # Calculate the composition of the air captured by the spacecraft
             flows_hist[i] = [0, 0, 0, 0, 0, 0, 0, 0] # This is a placeholder for now
@@ -182,6 +195,12 @@ def run_simulation_new(n_max: int, dt:float):
                 break
 
         # SOI check
-        
+        # Look up moon's position in the database
+        moon_pos = np.array([0, 0, 0]) # Placeholder for now
+        if distance(moon_pos, pos_hist[i]) < moon.SOI:
+            body = 'Moon'
+
+
 
     return pos_hist, vel_hist, acc_hist, flows_hist, atmos_time
+
