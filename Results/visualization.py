@@ -343,3 +343,40 @@ def plot_atmos_data(flows_hist, savepath=None):
     else:
         plt.show()
 
+
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.coordinates import OrbitPlotter
+
+def plot_orbit(pos_hist):
+    """
+    Plots the orbit of a spacecraft around Earth using AstroPy's OrbitPlotter.
+
+    Parameters:
+    pos_hist (numpy.ndarray): A 2D array where each row represents [x, y, z] positions
+                               in meters. Shape should be (n, 3) where n is the number of
+                               data points.
+    """
+    # Convert pos_hist to SkyCoord objects in Cartesian coordinates
+    positions = SkyCoord(x=pos_hist[:, 0]*u.m, 
+                         y=pos_hist[:, 1]*u.m, 
+                         z=pos_hist[:, 2]*u.m, 
+                         representation_type='cartesian')
+ 
+    # Assuming you need to plot it around Earth at origin
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    # Create an OrbitPlotter instance
+    orbit_plotter = OrbitPlotter(ax)
+    orbit_plotter.plot(positions)  
+
+    ax.set_xlabel('x (m)')  
+    ax.set_ylabel('y (m)')  
+    ax.set_title("Spacecraft's orbit around Earth")
+
+    plt.show()
+
+
+
+

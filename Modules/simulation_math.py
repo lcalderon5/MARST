@@ -201,6 +201,5 @@ def run_coast_phase(n_max: int, dt:float):
             body = 'Moon'
 
 
-
     return pos_hist, vel_hist, acc_hist, flows_hist, atmos_time
 

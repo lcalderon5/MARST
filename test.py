@@ -1,23 +1,12 @@
-from Modules.atmos import h, air
-from Modules.helper import linear_interp
 import numpy as np
 import matplotlib.pyplot as plt
+from orbitpy import Orbit
+from orbitpy.core import OrbitPlotter
 
-plt.plot(h, air)
-plt.yscale('log')
-plt.title('Density vs Height')
-plt.grid()
-plt.show()
+# Example initial conditions for the orbit (semi-major axis, eccentricity, inclination, etc.)
+orbit = Orbit(a=7000, e=0.1, i=30, omega=0, w=0, f=0)  # Simple example
 
-# Now with interpolation
-heights = np.linspace(0, 740, 1000)
-rho = np.zeros(1000)
+# Propagate the orbit
+orbit.plot_orbit()  # Plot the orbit
 
-for i in range(1000):
-    rho[i] = linear_interp(heights[i], h, air)
-
-plt.plot(heights, rho)
-plt.yscale('log')
-plt.title('Density vs Height')
-plt.grid()
 plt.show()

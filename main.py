@@ -8,14 +8,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import thingies
 from Modules.simulation_math import run_simulation
-from Results.visualization import plot_orbit_plotly, plot_atmos_data
+from Results.visualization import plot_orbit_plotly, plot_atmos_data, plot_orbit
 # from Modules.helper import sc_heigth
 
 
 if __name__ == "__main__":
 
     # Define the simulation parameters
-    n_max = 10000000
+    n_max = int(1e6)
     dt = 1
 
     # Run the simulation
@@ -26,5 +26,7 @@ if __name__ == "__main__":
     # print(f"Final height: {sc_heigth(pos_hist[-1])} km")
 
     # Plot the results
-    plot_orbit_plotly(pos_hist, res=0.1)
+    # plot_orbit_plotly(pos_hist, res=0.1)
+    plot_orbit(pos_hist)
+
 
