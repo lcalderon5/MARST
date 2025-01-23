@@ -26,7 +26,7 @@ def atmos_rot(position):
     # Angular velocity vector 
     omega_vec = np.array([0, 0, rot_speed])
 
-    return np.cross(omega_vec, position)
+    return np.cross(omega_vec, position) # in km/s
 
 
 @njit

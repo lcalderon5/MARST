@@ -16,7 +16,7 @@ from Modules.helper import orbital_elements_to_cartesian
 # --------- INPUTS ------------
 
 # Initial Orbit
-Periapsis = 400 # h in km
+Periapsis = 100 # h in km
 Apoapsis = 384000 # h in km
 Inclination = 0    # Inclination in degrees
 Rigth_Ascension_node = 30 # Right Ascension of the Ascending Node in degrees
