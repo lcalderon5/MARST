@@ -12,7 +12,7 @@ from Modules.dynamics import acceleration
 from Config.spacecraft import spacecraft
 from Modules.helper import sc_heigth
 
-
+# Run simulation function
 @njit
 def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
     """
@@ -21,8 +21,7 @@ def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
     Inputs:
         dt = 1: The time step of the simulation
         n_max = 1000: The maximum number of time steps of the simulation
-        Method = "euler": The method to use to run the simulation. It can be "euler", "RK4"  and "Verlet" for now and in the future maybe "RK45" if I get carried away
-
+        Method = "RK4": The method to use to run the simulation. Currently only RK4 is supported, but more methods can be added in the future.
     Returns:
         pos_hist: THe history of the positions of the spacecraft
         vel_hist: The history of the velocities of the spacecraft
@@ -80,6 +79,13 @@ def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
                 # Check for crash
                 if sc_heigth(pos_hist[i]) < 69: # Check for unrealistic values
                     print("The spacecraft has crashed")
+
+                    # Trim the ourput arrays
+                    pos_hist = pos_hist[:i]
+                    vel_hist = vel_hist[:i]
+                    acc_hist = acc_hist[:i]
+                    flows_hist = flows_hist[:i]
+
                     break
 
     elif Method == "Verlet":
@@ -109,3 +115,73 @@ def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
     return pos_hist, vel_hist, acc_hist, flows_hist, atmos_time
 
 
+# New function to run the simulation WORK IN PROGRESS
+@njit
+def run_simulation_new(n_max: int, dt:float):
+    """
+    This function runs the simulation.
+
+    Inputs:
+        dt = 1: The time step of the simulation
+        n_max = 1000: The maximum number of time steps of the simulation
+    Returns:
+        pos_hist: THe history of the positions of the spacecraft
+        vel_hist: The history of the velocities of the spacecraft
+        acc_hist: The history of the accelerations of the spacecraft
+        flows_hist: The history of the composition of the air captured by the spacecraft
+        atmos_time: The time that the spacecraft has been in the atmosphere
+    
+    """
+
+    # Create lists
+    pos_hist = np.zeros((n_max, 3)) # Ordered in the following way: [x, y, z]
+    vel_hist = np.zeros((n_max, 3)) # Ordered in the following way: [v_x, v_y, v_z]
+    acc_hist = np.zeros((n_max, 3)) # Ordered in the following way: [a_x, a_y, a_z]
+    flows_hist = np.zeros((n_max, 8)) # This is the composition of the air captured by the spacecraft, ordered in the following way: [air_mass, O_num, N2_num, O2_num, He_num, Ar_num, H_num, N_num]
+    atmos_time = 0
+
+    # Apply initial conditions
+    pos_hist[0] = spacecraft.initial_position
+    vel_hist[0] = spacecraft.initial_velocity
+
+
+    for i in range(1, n_max):
+        # RK4 for velocity
+        k1_v = acceleration(pos_hist[i-1], vel_hist[i-1])
+        k2_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt / 2, vel_hist[i-1] + k1_v * dt / 2)
+        k3_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt / 2, vel_hist[i-1] + k2_v * dt / 2)
+        k4_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt, vel_hist[i-1] + k3_v * dt)
+
+        acc_hist[i] = k1_v
+        vel_hist[i] = vel_hist[i-1] + (k1_v + 2*k2_v + 2*k3_v + k4_v) / 6 * dt
+
+        # RK4 for position
+        k1_r = vel_hist[i-1]
+        k2_r = vel_hist[i-1] + k1_v * dt / 2
+        k3_r = vel_hist[i-1] + k2_v * dt / 2
+        k4_r = vel_hist[i-1] + k3_v * dt
+
+        pos_hist[i] = pos_hist[i-1] + (k1_r + 2*k2_r + 2*k3_r + k4_r) / 6 * dt
+        
+        # Atmosphere check
+        if sc_heigth(pos_hist[i]) < 750:
+            atmos_time += dt
+            # Calculate the composition of the air captured by the spacecraft
+            flows_hist[i] = [0, 0, 0, 0, 0, 0, 0, 0] # This is a placeholder for now
+            
+            # Check for crash
+            if sc_heigth(pos_hist[i]) < 69: # Check for unrealistic values
+                print("The spacecraft has crashed")
+
+                # Trim the ourput arrays
+                pos_hist = pos_hist[:i]
+                vel_hist = vel_hist[:i]
+                acc_hist = acc_hist[:i]
+                flows_hist = flows_hist[:i]
+
+                break
+
+        # SOI check
+        
+
+    return pos_hist, vel_hist, acc_hist, flows_hist, atmos_time

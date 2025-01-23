@@ -11,12 +11,9 @@ import numpy as np
 from numba import njit
 from Config.spacecraft import spacecraft
 from Config.bodies_data import earth
-from Modules.helper import sc_heigth, linear_interp
+from Modules.helper import sc_heigth, linear_interp, norm
 
 # Rotating atmosphere model
-# Because im a bit dumb, for now I'm just going to assume it has the earths rotational velocity in the beggining 
-# and that it tapers off to 0 at 750 km in an exponential fashion (Made this shit up)
-# No vertical atmospheric movement, no crosswind, no coriolis shit. Maybe in the future.44
 
 @njit
 def atmos_rot(position):
@@ -26,24 +23,19 @@ def atmos_rot(position):
 
     # Constants
     atmos_velocity = np.zeros(3)
-    r_mag = position / np.sqrt(np.sum(position**2))
 
     # Speed Calculations
     theta = np.arctan(position[2] / np.sqrt(position[0] **2 + position[1] **2))
     earth_radius_true = earth.radius_equator - abs(theta) / (2*np.pi) * (earth.radius_equator - earth.radius_polar)
     rot_speed = earth_radius_true * 2 * np.pi / earth.day * np.cos(theta) # Km/s
 
-    # Exponential decay based on scale height
-    scale_height = 745  # km
-    atmos_speed = rot_speed * np.exp(-(r_mag - earth_radius_true) / scale_height)
-
     # Vector shenaningans
     k = - np.array([0, 0, 1])
     v_perp = np.cross(k, position)
-    unit_vector = v_perp / np.sqrt(np.sum(v_perp**2))
+    unit_vector = v_perp / norm(v_perp)
 
     # Vectorial velocity
-    velocity = atmos_speed * unit_vector
+    velocity = rot_speed * unit_vector
     atmos_velocity[0] = velocity[0]
     atmos_velocity[1] = velocity[1]
     atmos_velocity[2] = 0
@@ -67,6 +59,6 @@ def drag_acceleration(position:np.array, velocity:np.array, heights:np.array, ai
     velocity_rel = velocity - atmos_velocity
 
     # Calculate the drag acceleration
-    drag_a = -0.5 * spacecraft.C_D * spacecraft.A * rho * np.sqrt(np.sum(velocity_rel**2)) * velocity_rel / spacecraft.mass # in km/s^2
+    drag_a = -0.5 * spacecraft.C_D * spacecraft.A * rho * norm(velocity_rel) * velocity_rel / spacecraft.mass # in km/s^2
 
     return drag_a

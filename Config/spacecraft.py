@@ -17,11 +17,14 @@ from Modules.helper import orbital_elements_to_cartesian
 
 # Initial Orbit
 Periapsis = 400 # h in km
-Apoapsis = 400 # h in km
-Inclination = 45    # Inclination in degrees
+Apoapsis = 384000 # h in km
+Inclination = 0    # Inclination in degrees
 Rigth_Ascension_node = 30 # Right Ascension of the Ascending Node in degrees
 Argument_periapsis = 40 # deg
 Initial_anomaly = 180 # deg
+
+if Apoapsis < Periapsis:
+    raise ValueError("Apoapsis cannot be lower than the Periapsis")
 
 # Calculate semi-major axis and eccentricity
 Apoapsis = Apoapsis + earth.radius_equator

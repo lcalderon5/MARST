@@ -22,6 +22,7 @@ def sc_heigth(pos):
     Returns:
         height: The height of the spacecraft as a scalar
     """
+    
     # Calculate radius and height
     theta = np.arctan(pos[2] / np.sqrt(pos[0] **2 + pos[1] **2))
     earth_radius = bd.earth.radius_equator - abs(theta) / (2*np.pi) * (bd.earth.radius_equator - bd.earth.radius_polar)
@@ -32,46 +33,71 @@ def sc_heigth(pos):
 # Function to set intial conditions
 @njit
 def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float, 
-                                  raan: float, arg_periapsis: float, init_anomaly: float):
+                                  raan: float, arg_periapsis: float, init_anomaly: float, t: float = 0):
     """
-    This function converts orbital elements to cartesian coordinates.
+    Converts orbital elements to cartesian coordinates and propagates the orbit over time.
 
     Inputs:
-        mu: The gravitational parameter of the central body
-        peri: The periapsis of the orbit
-        apo: The apoapsis of the orbit
-        i: The inclination of the orbit
-        raan: The right ascension of the ascending node
-        arg_periapsis: The argument of periapsis
-        init_anomaly: The initial true anomaly
+        mu: The gravitational parameter of the central body (km^3/s^2)
+        peri: The periapsis of the orbit (km)
+        apo: The apoapsis of the orbit (km)
+        i: The inclination of the orbit (degrees)
+        raan: The right ascension of the ascending node (degrees)
+        arg_periapsis: The argument of periapsis (degrees)
+        init_anomaly: The initial true anomaly (degrees)
+        t: Time since the epoch (seconds)
 
     Returns:
-        r_inertial: The position vector in the inertial frame
-        v_inertial: The velocity vector in the inertial frame
+        r_inertial: The position vector in the inertial frame (km)
+        v_inertial: The velocity vector in the inertial frame (km/s)
     """
 
-    # Convert some stuff to radians
+
+    # Convert to radians
     i = np.radians(i)
     raan = np.radians(raan)
     arg_periapsis = np.radians(arg_periapsis)
-    init_anomaly = np.radians(init_anomaly)
 
     # Calculate semi-major axis and eccentricity
-    a = (peri + apo) / 2  # km
-    e = (apo - peri) / (apo + peri)  # unitless
+    a = (peri + apo) / 2  # Semi-major axis (km)
+    e = (apo - peri) / (apo + peri)  # Eccentricity
 
-    # Calculate position and velocity in the perifocal frame
-    p = a * (1 - e**2)  # Semi-latus rectum, km
-    r = p / (1 + e * np.cos(init_anomaly))  # Radius, km
+    # Calculate mean motion (rad/s)
+    n = np.sqrt(mu / a**3)
+
+    # Calculate initial mean anomaly (convert initial true anomaly to mean anomaly)
+    init_anomaly = np.radians(init_anomaly)
+    E0 = 2 * np.arctan(np.sqrt((1 - e) / (1 + e)) * np.tan(init_anomaly / 2))
+    M0 = E0 - e * np.sin(E0)
+
+    # Propagate mean anomaly to time t
+    M = M0 + n * t
+
+    # Solve Kepler's equation for eccentric anomaly
+    E = M  # Initial guess
+    while True:
+        E_next = E + (M - (E - e * np.sin(E))) / (1 - e * np.cos(E))
+        if abs(E_next - E) < 1e-8:
+            break
+        E = E_next
+
+
+    # Calculate true anomaly (nu) from eccentric anomaly
+    nu = 2 * np.arctan2(np.sqrt(1 + e) * np.sin(E / 2),
+                        np.sqrt(1 - e) * np.cos(E / 2))
+
+    # Calculate distance (r) at the propagated true anomaly
+    p = a * (1 - e**2)  # Semi-latus rectum (km)
+    r = p / (1 + e * np.cos(nu))
 
     # Position vector in perifocal coordinates
-    r_peri = np.array([r * np.cos(init_anomaly),
-                       r * np.sin(init_anomaly),
+    r_peri = np.array([r * np.cos(nu),
+                       r * np.sin(nu),
                        0.0])
 
     # Velocity vector in perifocal coordinates
-    v_peri = np.array([-np.sqrt(mu / p) * np.sin(init_anomaly),
-                       np.sqrt(mu / p) * (e + np.cos(init_anomaly)),
+    v_peri = np.array([-np.sqrt(mu / p) * np.sin(nu),
+                       np.sqrt(mu / p) * (e + np.cos(nu)),
                        0.0])
 
     # Rotation matrices
@@ -87,7 +113,7 @@ def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float,
                             [-np.sin(-arg_periapsis), np.cos(-arg_periapsis), 0.0],
                             [0.0, 0.0, 1.0]])
 
-    # Correct combined rotation matrix
+    # Total rotation matrix
     R_total = R3_arg_peri @ R1_incl @ R3_raan
 
     # Transform to inertial frame
@@ -105,3 +131,18 @@ def linear_interp(x, xp, fp):
             return fp[i] + (x - xp[i]) * (fp[i + 1] - fp[i]) / (xp[i + 1] - xp[i])
     return 0.0  # Out of range
 
+
+# Function to calculate the norm of a vector
+@njit
+def norm(vector):
+    norm = 0
+    for i in vector:
+        norm += i**2
+
+    return np.sqrt(norm)
+
+
+# Function to calculate the distance between two points
+@njit
+def distance(p1, p2):
+    return norm(p1 - p2)
