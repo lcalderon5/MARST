@@ -100,6 +100,6 @@ def acceleration_new(position:np.array, velocity:np.array,
 
 # Test the function
 if __name__ == "__main__":
-    position = np.array([6371, 0, 0])
-    velocity = np.array([0, 0, 0])
+    position = np.array([6471, 0, 0])
+    velocity = np.array([10, 0, 0])
     print(acceleration(position, velocity)) # Expected: [-0.00981, 0, 0] for Earth

@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 # Plotting functions
 
-def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750, show_periandapo=False, atmoslayers=False):
+def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750):
 
     # Apply resolution
     step = int(1 / res)
@@ -31,12 +31,7 @@ def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750, show_periandapo
     # Atmosphere radius
     atmosphere_radius = earth_radius + atmosphere_altitude
 
-    # Calculate apo and periapsis NEEDS REVISION FOR DRAG ORBITS
     radii = np.sqrt(np.array(motions[:,0])**2 + np.array(motions[:,1])**2 + np.array(motions[:,2])**2)
-    periapsis_idx = np.argmin(radii)
-    apoapsis_idx = np.argmax(radii)
-    periapsis_point = (motions[:,0][periapsis_idx], motions[:,1][periapsis_idx], motions[:,2][periapsis_idx])
-    apoapsis_point = (motions[:,0][apoapsis_idx], motions[:,1][apoapsis_idx], motions[:,2][apoapsis_idx])
 
     # Split orbit into atmosphere and space
     is_in_atmosphere = radii <= atmosphere_radius
@@ -71,36 +66,19 @@ def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750, show_periandapo
         opacity=1.0,
     ))
 
-    if atmoslayers:
-        # Add atmosphere layers with fading transparency
-        num_layers = 20
-        for i, alpha in enumerate(np.linspace(0.1, 0.01, num_layers)):
-            layer_radius = earth_radius + (750 / num_layers) * i
-            x_layer = layer_radius * np.outer(np.cos(u), np.sin(v))
-            y_layer = layer_radius * np.outer(np.sin(u), np.sin(v))
-            z_layer = layer_radius * np.outer(np.ones(np.size(u)), np.cos(v))
-            fig.add_trace(go.Surface(
-                x=x_layer,
-                y=y_layer,
-                z=z_layer,
-                colorscale=[[0, 'blue'], [1, 'lightblue']],
-                showscale=False,
-                opacity=alpha,
-            ))
-    else:
-        alpha = 0.1  # Transparency
-        layer_radius = earth_radius + atmosphere_altitude
-        x_layer = layer_radius * np.outer(np.cos(u), np.sin(v))
-        y_layer = layer_radius * np.outer(np.sin(u), np.sin(v))
-        z_layer = layer_radius * np.outer(np.ones(np.size(u)), np.cos(v))
-        fig.add_trace(go.Surface(
-            x=x_layer,
-            y=y_layer,
-            z=z_layer,
-            colorscale=[[0, 'blue'], [1, 'lightblue']],
-            showscale=False,
-            opacity=alpha,
-        ))
+    alpha = 0.1  # Transparency
+    layer_radius = earth_radius + atmosphere_altitude
+    x_layer = layer_radius * np.outer(np.cos(u), np.sin(v))
+    y_layer = layer_radius * np.outer(np.sin(u), np.sin(v))
+    z_layer = layer_radius * np.outer(np.ones(np.size(u)), np.cos(v))
+    fig.add_trace(go.Surface(
+        x=x_layer,
+        y=y_layer,
+        z=z_layer,
+        colorscale=[[0, 'blue'], [1, 'lightblue']],
+        showscale=False,
+        opacity=alpha,
+    ))
 
     # Add orbit segments - green for space, red for atmosphere
     for seg in space_segments:
@@ -122,21 +100,6 @@ def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750, show_periandapo
             line=dict(color='crimson', width=2),
             name="Atmospheric Orbit (h<750 km)",
             showlegend=False
-        ))
-
-    if show_periandapo:
-        # Add apoapsis and periapsis points
-        fig.add_trace(go.Scatter3d(
-            x=[periapsis_point[0]], y=[periapsis_point[1]], z=[periapsis_point[2]],
-            mode='markers',
-            marker=dict(color='yellow', size=5),
-            name="Periapsis"
-        ))
-        fig.add_trace(go.Scatter3d(
-            x=[apoapsis_point[0]], y=[apoapsis_point[1]], z=[apoapsis_point[2]],
-            mode='markers',
-            marker=dict(color='orange', size=5),
-            name="Apoapsis"
         ))
     
     # Add custom legend entries for "Space Orbit" and "Atmospheric Orbit"
@@ -188,129 +151,6 @@ def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750, show_periandapo
     fig.show()
 
 
-# Not fully functional
-def plot_orbit_plotly_animated(motions, atmosphere_altitude=750):
-    # Create Earth's surface
-    earth_radius = 6371  # km
-    u = np.linspace(0, 2 * np.pi, 50)  # Reduced resolution
-    v = np.linspace(0, np.pi, 50)
-    x_earth = earth_radius * np.outer(np.cos(u), np.sin(v))
-    y_earth = earth_radius * np.outer(np.sin(u), np.sin(v))
-    z_earth = earth_radius * np.outer(np.ones(np.size(u)), np.cos(v))
-
-    # Atmosphere radius
-    atmosphere_radius = earth_radius + atmosphere_altitude
-
-    # Orbital path
-    x_orbit = np.array(motions[:,0])[::10]  # Downsample data
-    y_orbit = np.array(motions[:,1])[::10]
-    z_orbit = np.array(motions[:,2])[::10]
-
-    # Create figure
-    fig = go.Figure()
-
-    # Add Earth's surface
-    fig.add_trace(go.Surface(
-        x=x_earth,
-        y=y_earth,
-        z=z_earth,
-        colorscale=[[0, 'blue'], [1, 'lightblue']],
-        showscale=False,
-        opacity=1.0,
-    ))
-
-    # Add a single atmosphere layer
-    layer_radius = atmosphere_radius
-    x_layer = layer_radius * np.outer(np.cos(u), np.sin(v))
-    y_layer = layer_radius * np.outer(np.sin(u), np.sin(v))
-    z_layer = layer_radius * np.outer(np.ones(np.size(u)), np.cos(v))
-    fig.add_trace(go.Surface(
-        x=x_layer,
-        y=y_layer,
-        z=z_layer,
-        colorscale=[[0, 'blue'], [1, 'lightblue']],
-        showscale=False,
-        opacity=0.1,
-    ))
-
-    # Add static orbital path
-    fig.add_trace(go.Scatter3d(
-        x=x_orbit, y=y_orbit, z=z_orbit,
-        mode='lines',
-        line=dict(color='lightgreen', width=2),
-        name="Orbit Path",
-    ))
-
-    # Add moving marker
-    fig.add_trace(go.Scatter3d(
-        x=[x_orbit[0]], y=[y_orbit[0]], z=[z_orbit[0]],
-        mode='markers',
-        marker=dict(color='red', size=3),
-        name="Orbiting Object",
-    ))
-
-    # Create frames
-    total_duration = 20000  # 20 seconds in milliseconds
-    num_frames = len(x_orbit)
-    frame_duration = total_duration // num_frames
-    frames = [
-        go.Frame(
-            data=[
-                go.Scatter3d(
-                    x=[x_orbit[k]], y=[y_orbit[k]], z=[z_orbit[k]],
-                    mode='markers',
-                    marker=dict(color='red', size=3)
-                )
-            ]
-        )
-        for k in range(num_frames)
-    ]
-
-    fig.frames = frames
-
-    # Add animation controls
-    fig.update_layout(
-        updatemenus=[{
-            "type": "buttons",
-            "buttons": [
-                {"label": "Play", "method": "animate", "args": [None, {"frame": {"duration": frame_duration, "redraw": False}, "fromcurrent": True}]},
-                {"label": "Pause", "method": "animate", "args": [[None], {"frame": {"duration": 0, "redraw": False}}]}
-            ]
-        }],
-        scene=dict(
-            xaxis=dict(
-                title=dict(text='X (km)', font=dict(color='white')),
-                tickfont=dict(color='white'),
-                backgroundcolor='black',
-                gridcolor='gray',
-                zerolinecolor='gray'
-            ),
-            yaxis=dict(
-                title=dict(text='Y (km)', font=dict(color='white')),
-                tickfont=dict(color='white'),
-                backgroundcolor='black',
-                gridcolor='gray',
-                zerolinecolor='gray'
-            ),
-            zaxis=dict(
-                title=dict(text='Z (km)', font=dict(color='white')),
-                tickfont=dict(color='white'),
-                backgroundcolor='black',
-                gridcolor='gray',
-                zerolinecolor='gray'
-            ),
-            aspectmode='data',
-            bgcolor='black'
-        ),
-        paper_bgcolor='black',
-        font=dict(color='white'),
-        margin=dict(l=0, r=0, b=0, t=0),
-    )
-
-    # Show plot
-    fig.show()
-
-
 # Plot collected air composition
 
 def plot_atmos_data(flows_hist, savepath=None):
@@ -344,38 +184,10 @@ def plot_atmos_data(flows_hist, savepath=None):
         plt.show()
 
 
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-from astropy.coordinates import OrbitPlotter
+# Another way to plot the orbit using matplotlib
 
-def plot_orbit(pos_hist):
-    """
-    Plots the orbit of a spacecraft around Earth using AstroPy's OrbitPlotter.
 
-    Parameters:
-    pos_hist (numpy.ndarray): A 2D array where each row represents [x, y, z] positions
-                               in meters. Shape should be (n, 3) where n is the number of
-                               data points.
-    """
-    # Convert pos_hist to SkyCoord objects in Cartesian coordinates
-    positions = SkyCoord(x=pos_hist[:, 0]*u.m, 
-                         y=pos_hist[:, 1]*u.m, 
-                         z=pos_hist[:, 2]*u.m, 
-                         representation_type='cartesian')
- 
-    # Assuming you need to plot it around Earth at origin
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
 
-    # Create an OrbitPlotter instance
-    orbit_plotter = OrbitPlotter(ax)
-    orbit_plotter.plot(positions)  
-
-    ax.set_xlabel('x (m)')  
-    ax.set_ylabel('y (m)')  
-    ax.set_title("Spacecraft's orbit around Earth")
-
-    plt.show()
 
 
 
