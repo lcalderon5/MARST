@@ -172,3 +172,6 @@ def norm(vector):
 @njit
 def distance(p1, p2):
     return norm(p1 - p2)
+
+
+# Function to 

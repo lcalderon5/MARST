@@ -124,12 +124,13 @@ def acceleration_sci_new(t:float, state:np.ndarray, body='earth') -> np.array:
 
     Inputs:
         t: The time of the simulation
-        state: The state of the spacecraft as a 6 element numpy array: [x, y, z, vx, vy, vz]
+        state: The state of the spacecraft as a 7 element numpy array: [x, y, z, vx, vy, vz, m]
 
     Returns:
-        state_dot: The derivative of the state as a 6 element numpy array: [vx, vy, vz, ax, ay, az]
+        state_dot: The derivative of the state as a 7 element numpy array: [vx, vy, vz, ax, ay, az, m_dot]
 
     """
+    
     # Obtain constants ( CONSIDER BRINGING OUT OF THE FUNCTION )
 
     # From the body data
@@ -144,6 +145,10 @@ def acceleration_sci_new(t:float, state:np.ndarray, body='earth') -> np.array:
 
     # From the spacecraft data
     a_T = spacecraft.thrust
+    if spacecraft.thrust is not None:
+        m_dot = spacecraft.mass_flow_rate
+    else:
+        m_dot = 0
 
     #--------------------------------
 
@@ -179,7 +184,7 @@ def acceleration_sci_new(t:float, state:np.ndarray, body='earth') -> np.array:
     a_total += a_T
 
     # Create state_dot vector
-    state_dot = np.concatenate((velocity, a_total))
+    state_dot = np.concatenate((velocity, a_total, -m_dot))
 
     return state_dot
 

@@ -37,5 +37,6 @@ numpy
 scipy
 matplotlib
 plotly
+spiceypy
 
-numba maybe
+numba -maybe not

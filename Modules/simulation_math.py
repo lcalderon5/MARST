@@ -11,8 +11,7 @@ import scipy.integrate as spi
 from numba import njit
 from Modules.dynamics import acceleration
 from Config.spacecraft import spacecraft
-from Config.bodies_data import moon
-from Modules.helper import sc_heigth, distance, orbital_elements_to_cartesian
+from Modules.helper import sc_heigth, orbital_elements_to_cartesian
 
 # Run simulation function
 @njit
@@ -117,111 +116,21 @@ def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
     return pos_hist, vel_hist, acc_hist, flows_hist, atmos_time
 
 
-# New function to run the simulation WORK IN PROGRESS
-# Load the moons data
-
-@njit
-def run_coast_phase(n_max: int, dt:float):
-    """
-    This function runs the simulation.
-
-    Inputs:
-        dt = 1: The time step of the simulation
-        n_max = 1000: The maximum number of time steps of the simulation
-    Returns:
-        pos_hist: THe history of the positions of the spacecraft
-        vel_hist: The history of the velocities of the spacecraft
-        acc_hist: The history of the accelerations of the spacecraft
-        flows_hist: The history of the composition of the air captured by the spacecraft
-        atmos_time: The time that the spacecraft has been in the atmosphere
-    
-    """
-
-    # Create lists
-    pos_hist = np.zeros((n_max, 3)) # Ordered in the following way: [x, y, z]
-    vel_hist = np.zeros((n_max, 3)) # Ordered in the following way: [v_x, v_y, v_z]
-    acc_hist = np.zeros((n_max, 3)) # Ordered in the following way: [a_x, a_y, a_z]
-    flows_hist = np.zeros((n_max, 8)) # This is the composition of the air captured by the spacecraft, ordered in the following way: [air_mass, O_num, N2_num, O2_num, He_num, Ar_num, H_num, N_num]
-    atmos_time = 0
-    t = 0
-
-    # Apply initial conditions
-    pos_hist[0] = spacecraft.initial_position
-    vel_hist[0] = spacecraft.initial_velocity
-
-    # Check for the body
-    body = 'Earth' # Body is a placeholder for now, it will entail passing the earth's
-    # If the spacecraft is within the SOI of the moon, change the body to the moon
-    moon_pos, _ = orbital_elements_to_cartesian(moon.gravitational_parameter, moon.periapsis, moon.apoapsis, moon.inclination, moon.raan, moon.arg_periapsis, moon.init_anomaly, 0)
-    if distance(moon_pos, pos_hist[i]) < moon.SOI:
-        body = 'Moon'
-
-    for i in range(1, n_max):
-
-        t += dt
-
-        # RK4 for velocity
-        k1_v = acceleration(pos_hist[i-1], vel_hist[i-1])
-        k2_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt / 2, vel_hist[i-1] + k1_v * dt / 2)
-        k3_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt / 2, vel_hist[i-1] + k2_v * dt / 2)
-        k4_v = acceleration(pos_hist[i-1] + vel_hist[i-1] * dt, vel_hist[i-1] + k3_v * dt)
-
-        acc_hist[i] = k1_v
-        vel_hist[i] = vel_hist[i-1] + (k1_v + 2*k2_v + 2*k3_v + k4_v) / 6 * dt
-
-        # RK4 for position
-        k1_r = vel_hist[i-1]
-        k2_r = vel_hist[i-1] + k1_v * dt / 2
-        k3_r = vel_hist[i-1] + k2_v * dt / 2
-        k4_r = vel_hist[i-1] + k3_v * dt
-
-        pos_hist[i] = pos_hist[i-1] + (k1_r + 2*k2_r + 2*k3_r + k4_r) / 6 * dt
-        
-        # Atmosphere check
-        if sc_heigth(pos_hist[i]) < 745:
-            atmos_time += dt
-            # Calculate the composition of the air captured by the spacecraft
-            flows_hist[i] = [0, 0, 0, 0, 0, 0, 0, 0] # This is a placeholder for now
-            
-            # Check for crash
-            if sc_heigth(pos_hist[i]) < 69: # Check for unrealistic values
-                print("The spacecraft has crashed")
-
-                # Trim the ourput arrays
-                pos_hist = pos_hist[:i]
-                vel_hist = vel_hist[:i]
-                acc_hist = acc_hist[:i]
-                flows_hist = flows_hist[:i]
-
-                break
-
-        # SOI check
-        # Look up moon's position in the database
-        moon_pos = np.array([0, 0, 0]) # Placeholder for now
-        if distance(moon_pos, pos_hist[i]) < moon.SOI:
-            body = 'Moon'
-
-
-    return pos_hist, vel_hist, acc_hist, flows_hist, atmos_time
-
-
 # Another implementation of the simulation, this time using scipy ODE solver: solve_ivp
 def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
 
     """
-    This function runs the simulation, for a specified phase.
+    This function propagates an orbit.
 
     Inputs:
         t_span: The time span of the simulation, a 2 member numpy array with the initial and final time
         acc_func: The acceleration function to use
-        state0: The initial state of the spacecraft, a 6 member numpy array with the initial position and velocity
+        state0: The initial state of the spacecraft, a 7 member numpy array with the initial position, velocity and mass of the spacecraft
     Returns:
         pos_hist: THe history of the positions of the spacecraft
         vel_hist: The history of the velocities of the spacecraft
-        acc_hist: The history of the accelerations of the spacecraft
-        flows_hist: The history of the composition of the air captured by the spacecraft
-        atmos_time: The time that the spacecraft has been in the atmosphere
-    
+        t_hist: The history of the time of the simulation
+
     """
 
     # Define event functions
@@ -250,7 +159,7 @@ def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
     vel_hist = sol.y[1]
     pos_hist = sol.y[0]
 
-    return pos_hist, vel_hist, t_hist
+    return t_hist, pos_hist, vel_hist
 
 
 
