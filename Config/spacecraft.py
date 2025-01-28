@@ -42,15 +42,20 @@ initial_position, initial_velocity = orbital_elements_to_cartesian(mu, Periapsis
 # Feel free to add more parameters to the spacecraft, such as fuel consumption, thrust, etc.
 # Just make sure to name them in the namedtuple part and add them to the Spacecraft part as a value.
 
-Spacecraft = namedtuple('MARST', ['name', 'mass', 'C_D', 'A', 'A_intake', 'eff_in', 'initial_position', 'initial_velocity'])
+Spacecraft = namedtuple('MARST', ['name', 'mass0', 'C_D', 'A', 'A_intake', 'eff_in', 'initial_position', 'initial_velocity',
+                                   'M_propellant', 'thrust', 'mass_flow_rate'])
 
 spacecraft = Spacecraft(
                     name="MARST",
-                    mass=5000,  # kg
+                    mass0=5000,  # kg
                     C_D=4,  # Drag coefficient
                     A=4,  # m^2
                     A_intake=4,  # m^2
                     eff_in=0.4,  # Efficiency of the intake
                     initial_position=initial_position,  # Initial position in km
-                    initial_velocity=initial_velocity  # Initial velocity in km/s
+                    initial_velocity=initial_velocity,  # Initial velocity in km/s
+                    M_propellant=1000,  # kg
+                    thrust=5,  # N
+                    mass_flow_rate=0.01  # kg/s
+
 )

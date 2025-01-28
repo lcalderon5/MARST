@@ -7,6 +7,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import numpy as np
+import scipy.integrate as spi
 from numba import njit
 from Modules.dynamics import acceleration
 from Config.spacecraft import spacecraft
@@ -202,4 +203,55 @@ def run_coast_phase(n_max: int, dt:float):
 
 
     return pos_hist, vel_hist, acc_hist, flows_hist, atmos_time
+
+
+# Another implementation of the simulation, this time using scipy ODE solver: solve_ivp
+def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
+
+    """
+    This function runs the simulation, for a specified phase.
+
+    Inputs:
+        t_span: The time span of the simulation, a 2 member numpy array with the initial and final time
+        acc_func: The acceleration function to use
+        state0: The initial state of the spacecraft, a 6 member numpy array with the initial position and velocity
+    Returns:
+        pos_hist: THe history of the positions of the spacecraft
+        vel_hist: The history of the velocities of the spacecraft
+        acc_hist: The history of the accelerations of the spacecraft
+        flows_hist: The history of the composition of the air captured by the spacecraft
+        atmos_time: The time that the spacecraft has been in the atmosphere
+    
+    """
+
+    # Define event functions
+    # Collision event
+    def collision_event(t, state):
+        R = 6371  # Earth's radius in meters
+        tolerance = 69  # Allow a buffer for a realistic height boundary
+        r = np.linalg.norm(state[:3])
+        return r - (R + tolerance)
+
+    collision_event.terminal = True
+    collision_event.direction = 0
+
+    # SOI event (Work in progress, for the future)
+    def SOI_event(t, state):
+        pass
+
+    # Define the events
+    events = [collision_event]
+
+    # Solve ODE: dv/dt = a, dx/dt = v
+    sol = spi.solve_ivp(acc_func, t_span, state0, method='RK45', rtol=1e-8, atol=1e-10, events=events)
+
+    # Extract the results
+    t_hist = sol.t
+    vel_hist = sol.y[1]
+    pos_hist = sol.y[0]
+
+    return pos_hist, vel_hist, t_hist
+
+
+
 

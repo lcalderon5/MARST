@@ -24,7 +24,3 @@ def test_acceleration(func):
         raise ValueError("The acceleration is incorrect")
     
     print("The acceleration function is correct")
-
-
-def accerleration_speed_test():
-    return

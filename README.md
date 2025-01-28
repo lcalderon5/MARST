@@ -18,7 +18,7 @@ Fixed Epoch:
 
 Often coordinates for position, velocity or acceleration are sotred in numpy arrays in the order [x, y, z]
 
-# About numba
+# About numba (might delete numba usage)
 I'm still learning how to properly use it, but so far some recomendations are:  
 Rules to ensure numba works as good as possible
     Avoid dictionaries, you can use named tuples instead
@@ -32,6 +32,7 @@ This function basically runs the math of the simulation and integrates the space
 
 For now it only needs the acceleration function, which should also take into account drag.
 
-# Notes for Lucas
-Check out pygmo
-Check out pykep
+# Dependencies
+numpy
+scipy
+numba maybe

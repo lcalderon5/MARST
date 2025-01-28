@@ -23,14 +23,14 @@ def sc_heigth(pos):
         height: The height of the spacecraft as a scalar
     """
     
-    # Calculate radius and height
-    theta = np.arctan(pos[2] / np.sqrt(pos[0] **2 + pos[1] **2))
+    # Calculate radius, latitude and height
+    theta = np.arctan(pos[2] / np.sqrt(pos[0] **2 + pos[1] **2 + 1e-10))
     earth_radius = bd.earth.radius_equator - abs(theta) / (2*np.pi) * (bd.earth.radius_equator - bd.earth.radius_polar)
     height = np.sqrt(np.sum(pos**2)) - earth_radius
     return height
 
 
-# Function to set intial conditions
+# Function to obtain the spacecraft's velocity in the inertial frame from the orbital elements
 @njit
 def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float, 
                                   raan: float, arg_periapsis: float, init_anomaly: float, t: float = 0):
@@ -121,6 +121,33 @@ def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float,
     v_inertial = R_total @ v_peri
 
     return r_inertial, v_inertial
+
+# Function to obtain the orbital elements from the spacecraft's position and velocity
+@njit
+def cartesian_to_orbital_elements(mu, position, velocity):
+
+    """
+    Converts cartesian coordinates to orbital elements.
+
+    Inputs:
+        mu: The gravitational parameter of the central body (km^3/s^2)
+        position: The position vector in the inertial frame (km)
+        velocity: The velocity vector in the inertial frame (km/s)
+
+    Returns:
+        peri: The periapsis of the orbit (km)
+        apo: The apoapsis of the orbit (km)
+        i: The inclination of the orbit (degrees)
+        raan: The right ascension of the ascending node (degrees)
+        arg_periapsis: The argument of periapsis (degrees)
+        true_anomaly: The true anomaly (degrees)
+    """
+
+    # Calculate angular momentum
+    h = np.cross(position, velocity)
+
+
+    return peri, apo, i, raan, arg_periapsis, true_anomaly
 
 
 # Linear interpolation in numba
