@@ -122,7 +122,7 @@ def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float,
 
     return r_inertial, v_inertial
 
-# Function to obtain the orbital elements from the spacecraft's position and velocity
+# Function to obtain the orbital elements from the spacecraft's position and velocity (WORK IN PROGRESS)
 @njit
 def cartesian_to_orbital_elements(mu, position, velocity):
 
@@ -143,11 +143,9 @@ def cartesian_to_orbital_elements(mu, position, velocity):
         true_anomaly: The true anomaly (degrees)
     """
 
-    # Calculate angular momentum
-    h = np.cross(position, velocity)
+    pass
 
-
-    return peri, apo, i, raan, arg_periapsis, true_anomaly
+    # return peri, apo, i, raan, arg_periapsis, true_anomaly
 
 
 # Linear interpolation in numba

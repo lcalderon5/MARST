@@ -27,7 +27,7 @@ Rules to ensure numba works as good as possible
     basically use simple arithmetic and life wil be fast and good
 
 
-# About the simulation function: run_simualation()
+# About the simulation function: run_simualation() IGNORE   
 This function basically runs the math of the simulation and integrates the spacecrafts motions, it then outputs arrays with data from the dyamics and even the atmosphere. The plan is to make the simulation be able to run with some different numerical integration methods such as euler, runge-kutta 4, verlet and in the future runge - kutta 4-5. It is built such that everything is stored in numpy arrays for numba compatiblitiy. It is best to keep it as lightweight as possible to make it more efficient and avoid upsettin numba
 
 For now it only needs the acceleration function, which should also take into account drag.
@@ -35,4 +35,7 @@ For now it only needs the acceleration function, which should also take into acc
 # Dependencies
 numpy
 scipy
+matplotlib
+plotly
+
 numba maybe

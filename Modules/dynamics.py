@@ -17,9 +17,6 @@ from Modules.atmos import h, air
 heights = h
 rho = air
 
-body = 'earth'
-print(bd.body.gravitational_parameter)
-
 # Acceleration function
 
 @njit()
