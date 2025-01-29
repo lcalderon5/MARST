@@ -17,9 +17,9 @@ import Config.bodies_data as bd
 # --------- ORBIT INPUTS ------------
 
 body = 'Earth' # The body that the spacecraft is orbiting
-Periapsis = 200 # h in km
-Apoapsis = 4000 # h in km
-Inclination = 0    # Inclination in degrees
+Periapsis = 400 # h in km
+Apoapsis = 400 # h in km
+Inclination = 45    # Inclination in degrees
 Rigth_Ascension_node = 30 # Right Ascension of the Ascending Node in degrees
 Argument_periapsis = 40 # deg
 Mean_anomaly_epoch = 180 # deg (v0)

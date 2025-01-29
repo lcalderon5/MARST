@@ -21,7 +21,7 @@ rho = air
 
 
 # Acceleratin function for scipy integration
-def acceleration(et:float, state:np.ndarray) -> np.array:
+def acceleration_simple(et:float, state:np.ndarray) -> np.array:
 
     """
     This function calculates the acceleration of the spacecraft.
@@ -60,16 +60,10 @@ def acceleration(et:float, state:np.ndarray) -> np.array:
         position[1] * (5 * position[2]**2 / r**2 - 1),
         position[2] * (5 * position[2]**2 / r**2 - 3)])
 
-    # Acceleration due to gravity of the second body
-    # a_total += - mu2 / r2**3 * position2
-
     # Acceleration due to drag
     if h < 745 and atmos is True:
         a_drag = drag_acceleration(position, velocity, heights, rho)
         a_total += a_drag 
-
-    # Acceleration due to thrust, assumed to be perfectly aligned with the velocity vector
-    # a_total += a_T
 
     # Create state_dot vector
     state_dot = np.concatenate((velocity, a_total))
@@ -78,7 +72,7 @@ def acceleration(et:float, state:np.ndarray) -> np.array:
 
 
 # Generalized function with more perturbations
-def acceleration_new(et:float, state:np.ndarray, body='Earth') -> np.array:
+def acceleration(et:float, state:np.ndarray, body='Earth') -> np.array:
 
     """
     This function calculates the acceleration of the spacecraft.
