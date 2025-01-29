@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import spiceypy as spice
 import time
+from Config import bodies_data as bd
 
 
 # Load the SPICE Kernels
@@ -36,7 +37,22 @@ print(f'Time taken to calculate Moon constants: {end - start} seconds')
 moon_position = moon_state[:3]
 moon_velocity = moon_state[3:]
 
+# Test the acceleration function logic
+start = time.perf_counter()
+body = 'Earth'
+body_data = getattr(bd, body)
+mu = body_data.gravitational_parameter
+J2 = body_data.J2
+atmos = body_data.atmos
+R_e = body_data.radius_equator
+body2 = body_data.body2
+mu2 = getattr(bd, body2).gravitational_parameter
+pos_body2 = spice.spkezr(body2, et, 'J2000', 'NONE', body)[0][:3]
+end = time.perf_counter()
+print(f'Time taken to calculate acceleration logic: {end - start} seconds')
+
 # Print the position and velocity of the Moon relative to the Earth
 print(f'Moon Position (km): {moon_position}')
+print(f'Moon Position from test 2 (km/s): {pos_body2}')
 print(f'Moon Velocity (km/s): {moon_velocity}')
 print(f'Moon Constants: {moon_constants}')

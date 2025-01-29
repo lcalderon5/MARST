@@ -94,7 +94,7 @@ def acceleration_new(et:float, state:np.ndarray, body='Earth') -> np.array:
 
     """
 
-    # Obtain constants ( CONSIDER BRINGING OUT OF THE FUNCTION )
+    # Obtain constants ( CONSIDER BRINGING OUT OF THE FUNCTION, OR NOT CUZ SPICEYPY IS GOAT FAST )
 
     # From the body data
     body_data = getattr(bd, body)
@@ -104,7 +104,7 @@ def acceleration_new(et:float, state:np.ndarray, body='Earth') -> np.array:
     R_e = body_data.radius_equator
     body2 = body_data.body2
     mu2 = getattr(bd, body2).gravitational_parameter
-    pos_body2 = spice.spkezr(body2, et, 'J2000', 'NONE', body)[0][:3] # PLACEHOLDER
+    pos_body2 = spice.spkezr(body2, et, 'J2000', 'NONE', body)[0][:3] # Position of the second body, wrt to the first body
 
     # From the spacecraft data
     a_T = spacecraft.thrust
@@ -117,13 +117,13 @@ def acceleration_new(et:float, state:np.ndarray, body='Earth') -> np.array:
 
     # Unpack the state vector
     position = state[:3]
-    velocity = state[3:]
+    velocity = state[3:6]
 
     # Calculate radius, position2 and height
     r = np.linalg.norm(position) 
     h = sc_heigth(position)
-    position2 = position - pos_body2
-    r2 = np.linalg.norm(position2)
+    position2 = pos_body2 - position
+    r2 = np.linalg.norm(pos_body2)
 
     # Acceleration due to gravity of the first body
     a_total = - mu / r**3 * position
@@ -147,7 +147,7 @@ def acceleration_new(et:float, state:np.ndarray, body='Earth') -> np.array:
     a_total += a_T
 
     # Create state_dot vector
-    state_dot = np.concatenate((velocity, a_total, -m_dot))
+    state_dot = np.concatenate((velocity, a_total, np.array([-m_dot])))
 
     return state_dot
 

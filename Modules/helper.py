@@ -3,12 +3,12 @@
 
 import sys
 import os
+import numpy as np
+from numba import njit
 
 # Add the project root directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import numpy as np
-from numba import njit
 from Config import bodies_data as bd
 
 @njit
@@ -30,8 +30,7 @@ def sc_heigth(pos):
     return height
 
 
-# Function to be replaced by spiceypy implementations
-
+# ------------Functions to be replaced by spiceypy implementations----------------
 # Function to obtain the spacecraft's velocity in the inertial frame from the orbital elements
 @njit
 def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float, 
@@ -126,7 +125,7 @@ def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float,
 # Equivalent to spiceypy.conics(state, et, mu) function
 
 
-# Function to obtain the orbital elements from the spacecraft's position and velocity (WORK IN PROGRESS)
+# Function to obtain the orbital elements from the spacecraft's position and velocity
 @njit
 def cartesian_to_orbital_elements(mu, position, velocity):
 
@@ -152,6 +151,9 @@ def cartesian_to_orbital_elements(mu, position, velocity):
     # return peri, apo, i, raan, arg_periapsis, true_anomaly
 # Equivalent to spiceypy.oscltx(state, et, mu) function
 
+
+
+#---------- NUMBA FUNCTIONS ----------
 # Linear interpolation in numba
 # This function finds the correspoinding value of x in the xp array and returns the interpolated value of fp
 @njit

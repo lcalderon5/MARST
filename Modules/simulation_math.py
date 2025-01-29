@@ -21,12 +21,13 @@ def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
     This function propagates an orbit.
 
     Inputs:
-        t_span: The time span of the simulation, a 2 member numpy array with the initial and final time
+        t_span: The time span of the simulation, a 2 member numpy array with the initial and final time, in et seconds
         acc_func: The acceleration function to use
         state0: The initial state of the spacecraft, a 7 member numpy array with the initial position, velocity and mass of the spacecraft
     Returns:
         pos_hist: THe history of the positions of the spacecraft
         vel_hist: The history of the velocities of the spacecraft
+        mass_hist: The history of the mass of the spacecraft
         t_hist: The history of the time of the simulation
 
     """
@@ -57,9 +58,13 @@ def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
     # Extract the results
     t_hist = sol.t
     pos_hist = sol.y[:3]
-    vel_hist = sol.y[3:]
+    vel_hist = sol.y[3:6]
+    mass_hist = sol.y[6]
+
+    # Print end
+    print("Propagation finished")
     
-    return t_hist.T, pos_hist.T, vel_hist.T
+    return t_hist.T, pos_hist.T, vel_hist.T, mass_hist.T
 
 
 # Numba compatible propagation function (OLD, NOT SUPPORTED ANYMORE)
