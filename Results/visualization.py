@@ -214,7 +214,7 @@ def plot_matplotlib(positions, t, state0, radial_event_states):
 
 
 # ----------- COES PLOTTING FUNCTIONS ------------
-def plot_coes(et, coes, save=False, relative=False):
+def plot_coes(et:np.ndarray, coes:np.ndarray, save=False, relative=False, deg=False):
 
     """
     This function plots the classical orbital elements of the spacecraft over time.
@@ -242,6 +242,12 @@ def plot_coes(et, coes, save=False, relative=False):
         coes[:, 8] -= coes[0, 8]
         coes[:, 9] -= coes[0, 9]
 
+    if deg:
+        coes[:, 2] = np.degrees(coes[:, 2])
+        coes[:, 3] = np.degrees(coes[:, 3])
+        coes[:, 4] = np.degrees(coes[:, 4])
+        coes[:, 8] = np.degrees(coes[:, 8])
+
 
     # Figure for the COEs
     fig,( ( ax0, ax1, ax2 ),( ax3, ax4, ax5 ) ) = plt.subplots( 2, 3, figsize = (12, 6) )
@@ -254,7 +260,10 @@ def plot_coes(et, coes, save=False, relative=False):
     # True anomaly
     ax0.plot(et, coes[: , 8])
     ax0.set_xlabel('Time (hours)')
-    ax0.set_ylabel('True Anomaly (rad)')
+    if deg:
+        ax0.set_ylabel('True Anomaly (deg)')
+    else:
+        ax0.set_ylabel('True Anomaly (rad)')
     ax0.grid( linestyle = 'dotted' )
 
     # Semi-major axis
@@ -272,19 +281,28 @@ def plot_coes(et, coes, save=False, relative=False):
     # Inclination
     ax3.plot(et, coes[: , 2])
     ax3.set_xlabel('Time (hours)')
-    ax3.set_ylabel('Inclination (rad)')
+    if deg:
+        ax3.set_ylabel('Inclination (deg)')
+    else:
+        ax3.set_ylabel('Inclination (rad)')
     ax3.grid( linestyle = 'dotted' )
 
     # Right Ascension of the Ascending Node
     ax4.plot(et, coes[: , 3])
     ax4.set_xlabel('Time (hours)')
-    ax4.set_ylabel('RAAN (rad)')
+    if deg:
+        ax4.set_ylabel('RAAN (deg)')
+    else:
+        ax4.set_ylabel('RAAN (rad)')
     ax4.grid( linestyle = 'dotted' )
 
     # Argument of Periapsis
     ax5.plot(et, coes[: , 4])
     ax5.set_xlabel('Time (hours)')
-    ax5.set_ylabel('Argument of Periapsis (rad)')
+    if deg:
+        ax5.set_ylabel('Argument of Periapsis (deg)')
+    else:
+        ax5.set_ylabel('Argument of Periapsis (rad)')
     ax5.grid( linestyle = 'dotted' )
 
     # Adjust the plots

@@ -35,7 +35,6 @@ if __name__ == "__main__":
     # Convert data to coes
     state = np.concatenate((pos_hist, vel_hist), axis=1)
     coes = states_to_coes(state, t_hist, mu)
-    print(np.shape(coes))
 
     # Debugging
     # print(f"Final height: {sc_heigth(pos_hist[-1])} km")
@@ -45,6 +44,6 @@ if __name__ == "__main__":
 
     # Plot the results
     plot_orbit_plotly(pos_hist, res=1)
-    plot_coes(t_hist, coes)
+    plot_coes(t_hist, coes, deg=True)
     
 
