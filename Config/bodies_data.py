@@ -10,11 +10,10 @@ from collections import namedtuple
 Earth = namedtuple('Earth', ['name', 'mass', 'radius_mean', 'radius_equator', 'radius_polar', 'gravitational_parameter', 'J2',
                             'atmos', 'day', 'SOI', 'body2'])
 Moon = namedtuple('Moon', ['name', 'mass', 'radius_mean', 'radius_equator', 'radius_polar', 'gravitational_parameter', 'J2',
-                            'atmos', 'day', 'SOI', 'body2',
-                           'peri0', 'apo0', 'inclination0', 'Rigth_Ascension_node0', 'Argument_periapsis0', 'Initial_anomaly0'])
+                            'atmos', 'day', 'SOI', 'body2'])
 
 # Earth data
-earth = Earth(
+Earth = Earth(
     name="Earth",
     mass=5.9722e24,  # kg
     radius_mean=6371,  # km
@@ -25,11 +24,11 @@ earth = Earth(
     atmos=True, # The Earth has an atmosphere
     day=86164.1,  # seconds
     SOI=0.929e6, # km, Sphere of Influence
-    body2='moon', # The main perturbing body for the earth, the moon
+    body2='Moon', # The main perturbing body for the earth, the moon
 )
 
 # Moon data
-moon = Moon(
+Moon = Moon(
     name="Moon",
     mass=7.342e22,  # kg
     radius_mean=1737.4,  # km
@@ -40,11 +39,5 @@ moon = Moon(
     atmos=False, # The Moon doesn't have an atmosphere
     day=2360591.5,  # seconds
     SOI=0.0643e6, # km
-    body2='earth', # The main perturbing body for the moon, the earth
-    peri0=362600, # km
-    apo0=405400, # km
-    inclination0=5.145, # deg
-    Rigth_Ascension_node0=125.08, # Right Ascension of the Ascending Node in degrees
-    Argument_periapsis0=318.15, # deg
-    Initial_anomaly0=115.3654, # deg
+    body2='Earth', # The main perturbing body for the moon, the earth
 )

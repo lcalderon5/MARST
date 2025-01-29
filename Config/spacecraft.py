@@ -7,7 +7,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from collections import namedtuple
-from Config.bodies_data import earth
+from Config.bodies_data import Earth
 from Modules.helper import orbital_elements_to_cartesian
 
 # Using named tuples to make it more numba friendly, they are immutable and faster than dictionaries
@@ -27,13 +27,13 @@ if Apoapsis < Periapsis:
     raise ValueError("Apoapsis cannot be lower than the Periapsis")
 
 # Calculate semi-major axis and eccentricity
-Apoapsis = Apoapsis + earth.radius_equator
-Periapsis = Periapsis + earth.radius_equator
+Apoapsis = Apoapsis + Earth.radius_equator
+Periapsis = Periapsis + Earth.radius_equator
 a = (Apoapsis + Periapsis) / 2 # in km
 e = (Apoapsis - Periapsis) / (Apoapsis + Periapsis) # unitless
 
 # Convert these to a position and velocity vector
-mu = earth.gravitational_parameter # This can be changed depending on the body that the spacecraft is initially orbiting 
+mu = Earth.gravitational_parameter # This can be changed depending on the body that the spacecraft is initially orbiting 
 initial_position, initial_velocity = orbital_elements_to_cartesian(mu, Periapsis, Apoapsis, Inclination, Rigth_Ascension_node, Argument_periapsis, Initial_anomaly)
 
 

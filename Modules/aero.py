@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 from numba import njit
 from Config.spacecraft import spacecraft
-from Config.bodies_data import earth
+from Config.bodies_data import Earth
 from Modules.helper import sc_heigth, linear_interp, norm
 
 # Rotating atmosphere model
@@ -21,7 +21,7 @@ def atmos_rot(position):
     if np.sqrt(position[0]**2 + position[1]**2) <=10:
         return np.zeros(3)
 
-    rot_speed = 2 * np.pi / earth.day
+    rot_speed = 2 * np.pi / Earth.day
 
     # Angular velocity vector 
     omega_vec = np.array([0, 0, rot_speed])

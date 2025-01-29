@@ -35,10 +35,10 @@ def acceleration(t:float, state:np.ndarray) -> np.array:
 
     """
     # Obtain constants ( TO BE EXPANDED )
-    mu = bd.earth.gravitational_parameter
-    J2 = bd.earth.J2
-    R_e = bd.earth.radius_equator
-    atmos = bd.earth.atmos
+    mu = bd.Earth.gravitational_parameter
+    J2 = bd.Earth.J2
+    R_e = bd.Earth.radius_equator
+    atmos = bd.Earth.atmos
 
     # Unpack the state vector
     position = state[:3]
@@ -76,7 +76,7 @@ def acceleration(t:float, state:np.ndarray) -> np.array:
 
 
 # Generalized function with more perturbations
-def acceleration_new(t:float, state:np.ndarray, body='earth') -> np.array:
+def acceleration_new(t:float, state:np.ndarray, body='Earth') -> np.array:
 
     """
     This function calculates the acceleration of the spacecraft.
@@ -164,12 +164,12 @@ def acceleration_numba(position:np.array, velocity:np.array, body:str='Earth') -
     # Logic for the celestial body
     atmos = False
     if body == 'Earth':
-        mu = bd.earth.gravitational_parameter
-        J2 = bd.earth.J2
-        R_e = bd.earth.radius_equator
+        mu = bd.Earth.gravitational_parameter
+        J2 = bd.Earth.J2
+        R_e = bd.Earth.radius_equator
         atmos = True
     elif body == 'Moon':
-        mu = bd.moon.gravitational_parameter
+        mu = bd.Moon.gravitational_parameter
     else:
         raise ValueError('The body is not in the database.')
 

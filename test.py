@@ -26,6 +26,12 @@ moon_state, _ = spice.spkezr('Moon', et, 'J2000', 'NONE', 'Earth')
 end = time.perf_counter()
 print(f'Time taken to calculate Moon position: {end - start} seconds')
 
+# Get the moon constants
+start = time.perf_counter()
+moon_constants = spice.bodvrd('Moon', 'RADII', 3) # Returns r_eq, r_eq, r_polar (triaxial ellipsoid)
+end = time.perf_counter()
+print(f'Time taken to calculate Moon constants: {end - start} seconds')
+
 # Extract the position and velocity vector from the state vector
 moon_position = moon_state[:3]
 moon_velocity = moon_state[3:]
@@ -33,3 +39,4 @@ moon_velocity = moon_state[3:]
 # Print the position and velocity of the Moon relative to the Earth
 print(f'Moon Position (km): {moon_position}')
 print(f'Moon Velocity (km/s): {moon_velocity}')
+print(f'Moon Constants: {moon_constants}')

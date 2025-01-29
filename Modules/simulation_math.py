@@ -30,6 +30,8 @@ def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
         t_hist: The history of the time of the simulation
 
     """
+    # Print that the propagation is starting
+    print("Propagating orbit")
 
     # Define event functions
     # Collision event
@@ -50,7 +52,7 @@ def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
     events = [collision_event]
 
     # Solve ODE: dv/dt = a, dx/dt = v
-    sol = spi.solve_ivp(acc_func, t_span, state0, method='RK45', rtol=1e-8, atol=1e-10, events=events)
+    sol = spi.solve_ivp(acc_func, t_span, state0, method='LSODA', rtol=1e-9, atol=1e-9, events=events)
 
     # Extract the results
     t_hist = sol.t
