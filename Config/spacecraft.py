@@ -17,9 +17,9 @@ import Config.bodies_data as bd
 # --------- ORBIT INPUTS ------------
 
 body = 'Earth' # The body that the spacecraft is orbiting
-Periapsis = 400 # h in km
-Apoapsis = 400 # h in km
-Inclination = 45    # Inclination in degrees
+Periapsis = 200 # h in km
+Apoapsis = 200 # h in km
+Inclination = 0    # Inclination in degrees
 Rigth_Ascension_node = 30 # Right Ascension of the Ascending Node in degrees
 Argument_periapsis = 40 # deg
 Mean_anomaly_epoch = 180 # deg (v0)
@@ -75,7 +75,7 @@ Spacecraft = namedtuple('MARST', ['name', 'et0', 'mass0', 'C_D', 'A', 'A_intake'
 
 spacecraft = Spacecraft(
                     name="MARST",
-                    et0=et, # Initial epoch time in seconds after J2000
+                    et0=et,  # Initial epoch time in seconds after J2000
                     mass0=5000,  # kg
                     C_D=4,  # Drag coefficient
                     A=4,  # m^2
@@ -84,6 +84,6 @@ spacecraft = Spacecraft(
                     initial_position=initial_position,  # Initial position in km
                     initial_velocity=initial_velocity,  # Initial velocity in km/s
                     M_propellant=1000,  # kg
-                    thrust=0,  # N
-                    mass_flow_rate=0  # kg/s
+                    thrust=10,  # N
+                    mass_flow_rate=0.001  # kg/s
 )

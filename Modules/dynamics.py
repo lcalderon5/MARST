@@ -88,6 +88,10 @@ def acceleration(et:float, state:np.ndarray, body='Earth') -> np.array:
 
     """
 
+    # Unpack the state vector
+    position = state[:3]
+    velocity = state[3:6]
+
     # Obtain constants ( CONSIDER BRINGING OUT OF THE FUNCTION, OR NOT CUZ SPICEYPY IS GOAT FAST )
 
     # From the body data
@@ -101,17 +105,13 @@ def acceleration(et:float, state:np.ndarray, body='Earth') -> np.array:
     pos_body2 = spice.spkezr(body2, et, 'J2000', 'NONE', body)[0][:3] # Position of the second body, wrt to the first body
 
     # From the spacecraft data
-    a_T = spacecraft.thrust
+    a_T = spacecraft.thrust / state[6] / 1000 * velocity / np.linalg.norm(velocity) # Thrust acceleration in km/s^2
     if spacecraft.thrust is not None:
         m_dot = spacecraft.mass_flow_rate
     else:
         m_dot = 0
 
     #--------------------------------
-
-    # Unpack the state vector
-    position = state[:3]
-    velocity = state[3:6]
 
     # Calculate radius, position2 and height
     r = np.linalg.norm(position) 
