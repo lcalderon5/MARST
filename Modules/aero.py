@@ -40,6 +40,6 @@ def drag_acceleration(position:np.array, velocity:np.array, heights:np.array, ai
     velocity_rel = velocity - atmos_velocity
 
     # Calculate the drag acceleration
-    drag_a = -0.5 * spacecraft.C_D * spacecraft.A * rho * norm(velocity_rel) * velocity_rel / spacecraft.mass * 1000 # in km/s^2 (remember that the density is in kg/m^3, A in m^2 and velocity in km/s)
+    drag_a = -0.5 * spacecraft.C_D * spacecraft.A * rho * norm(velocity_rel) * velocity_rel / spacecraft.mass0 * 1000 # in km/s^2 (remember that the density is in kg/m^3, A in m^2 and velocity in km/s)
 
     return drag_a

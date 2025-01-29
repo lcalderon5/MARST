@@ -40,3 +40,7 @@ plotly
 spiceypy
 
 numba -maybe not
+
+# Citations
+Pak, Dennis C, "Linearized Equations for J2 Perturbed Motion Relative to an Elliptical Orbit" (2005).  Master's Thesis, San Jose State University.
+

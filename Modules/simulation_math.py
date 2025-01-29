@@ -13,7 +13,54 @@ from Modules.dynamics import acceleration
 from Config.spacecraft import spacecraft
 from Modules.helper import sc_heigth, orbital_elements_to_cartesian
 
-# Run simulation function
+
+# Another implementation of the simulation, this time using scipy ODE solver: solve_ivp
+def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
+
+    """
+    This function propagates an orbit.
+
+    Inputs:
+        t_span: The time span of the simulation, a 2 member numpy array with the initial and final time
+        acc_func: The acceleration function to use
+        state0: The initial state of the spacecraft, a 7 member numpy array with the initial position, velocity and mass of the spacecraft
+    Returns:
+        pos_hist: THe history of the positions of the spacecraft
+        vel_hist: The history of the velocities of the spacecraft
+        t_hist: The history of the time of the simulation
+
+    """
+
+    # Define event functions
+    # Collision event
+    def collision_event(t, state):
+        R = 6371  # Earth's radius in meters
+        tolerance = 69  # Allow a buffer for a realistic height boundary
+        r = np.linalg.norm(state[:3])
+        return r - (R + tolerance)
+
+    collision_event.terminal = True
+    collision_event.direction = 0
+
+    # SOI event (Work in progress, for the future)
+    def SOI_event(t, state):
+        pass
+
+    # Define the events
+    events = [collision_event]
+
+    # Solve ODE: dv/dt = a, dx/dt = v
+    sol = spi.solve_ivp(acc_func, t_span, state0, method='RK45', rtol=1e-8, atol=1e-10, events=events)
+
+    # Extract the results
+    t_hist = sol.t
+    pos_hist = sol.y[:3]
+    vel_hist = sol.y[3:]
+    
+    return t_hist.T, pos_hist.T, vel_hist.T
+
+
+# Numba compatible propagation function (OLD, NOT SUPPORTED)
 @njit
 def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
     """
@@ -114,53 +161,5 @@ def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
 
 
     return pos_hist, vel_hist, acc_hist, flows_hist, atmos_time
-
-
-# Another implementation of the simulation, this time using scipy ODE solver: solve_ivp
-def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
-
-    """
-    This function propagates an orbit.
-
-    Inputs:
-        t_span: The time span of the simulation, a 2 member numpy array with the initial and final time
-        acc_func: The acceleration function to use
-        state0: The initial state of the spacecraft, a 7 member numpy array with the initial position, velocity and mass of the spacecraft
-    Returns:
-        pos_hist: THe history of the positions of the spacecraft
-        vel_hist: The history of the velocities of the spacecraft
-        t_hist: The history of the time of the simulation
-
-    """
-
-    # Define event functions
-    # Collision event
-    def collision_event(t, state):
-        R = 6371  # Earth's radius in meters
-        tolerance = 69  # Allow a buffer for a realistic height boundary
-        r = np.linalg.norm(state[:3])
-        return r - (R + tolerance)
-
-    collision_event.terminal = True
-    collision_event.direction = 0
-
-    # SOI event (Work in progress, for the future)
-    def SOI_event(t, state):
-        pass
-
-    # Define the events
-    events = [collision_event]
-
-    # Solve ODE: dv/dt = a, dx/dt = v
-    sol = spi.solve_ivp(acc_func, t_span, state0, method='RK45', rtol=1e-8, atol=1e-10, events=events)
-
-    # Extract the results
-    t_hist = sol.t
-    vel_hist = sol.y[1]
-    pos_hist = sol.y[0]
-
-    return t_hist, pos_hist, vel_hist
-
-
 
 

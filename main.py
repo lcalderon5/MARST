@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import own Libraries
 from Modules.simulation_math import run_simulation, propagate_phase
-from Modules.dynamics import acceleration_sci, acceleration_sci_new
+from Modules.dynamics import acceleration, acceleration_new
 from Results.visualization import plot_orbit_plotly, plot_atmos_data
 from Config.spacecraft import initial_position, initial_velocity
 # from Modules.helper import sc_heigth
@@ -28,17 +28,19 @@ if __name__ == "__main__":
     spice.furnsh(r"C:\Users\lucas\Desktop\Code Adventures\MARST\MARST\Data\Spice\Solar_sytem_kernel.tm")
 
     # Load the spacecraft initial conditions
-    t_span = [0, 1e5]
+    t_span = [0, 1e6]
     state0 = np.concatenate((initial_position, initial_velocity))
 
     # Run the simulation
     print("Running simulation")
-    # pos_hist, vel_hist, acc_hist, flows_hist, atmos_time = run_simulation(n_max, dt, Method = "RK4")
-    t_hist, pos_hist, vel_hist = propagate_phase(t_span, acceleration_sci, state0)
+    t_hist, pos_hist, vel_hist = propagate_phase(t_span, acceleration, state0)
     print("Simulation finished")
+
     # print(f"Time in atmosphere: {atmos_time} s")
     # print(f"Final height: {sc_heigth(pos_hist[-1])} km")
-    print(pos_hist[-1])
+    print(np.shape(t_hist))
+    print(np.shape(pos_hist))
+
     # Plot the results
-    plot_orbit_plotly(pos_hist, res=0.1)
+    plot_orbit_plotly(pos_hist, res=1)
 

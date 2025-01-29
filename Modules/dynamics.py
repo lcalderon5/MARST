@@ -17,51 +17,9 @@ from Modules.atmos import h, air
 heights = h
 rho = air
 
-# Acceleration function
-
-@njit()
-def acceleration(position:np.array, velocity:np.array, body:str='Earth') -> np.array:
-
-    """
-    This function calculates the acceleration of the spacecraft.
-    It can take into account the gravitational pull of the celestial bodies up to the second order.
-    It can also take into account the drag of the atmosphere.
-
-    """
-
-    # Logic for the celestial body
-    atmos = False
-    if body == 'Earth':
-        mu = bd.earth.gravitational_parameter
-        J2 = bd.earth.J2
-        R_e = bd.earth.radius_equator
-        atmos = True
-    elif body == 'Moon':
-        mu = bd.moon.gravitational_parameter
-    else:
-        raise ValueError('The body is not in the database.')
-
-    # Calculate radius, colatitude and height
-    r = norm(position)
-    h = sc_heigth(position)
-
-    # Acceleration due to gravity
-    a_total = - mu / r**3 * position
-
-    # Acceleration due to perturbations
-    if body == 'Earth':
-        a_total += -3 * mu * J2 * R_e**2 / r**5 * np.array([position[0] * (5 * position[2]**2 / r**2 - 1), position[1] * (5 * position[2]**2 / r**2 - 1), position[2] * (5 * position[2]**2 / r**2 - 3)])
-
-    # Acceleration due to drag
-    if h < 745 and atmos is True:
-        a_drag = drag_acceleration(position, velocity, heights, rho)
-        a_total += a_drag 
-
-    return a_total
-
 
 # Acceleratin function for scipy integration
-def acceleration_sci(t:float, state:np.ndarray) -> np.array:
+def acceleration(t:float, state:np.ndarray) -> np.array:
 
     """
     This function calculates the acceleration of the spacecraft.
@@ -87,7 +45,7 @@ def acceleration_sci(t:float, state:np.ndarray) -> np.array:
     velocity = state[3:]
 
     # Calculate radius, colatitude and height
-    r = np.sqrt(np.sum(position**2))
+    r = np.linalg.norm(position)
     # r2 = np.sqrt(np.sum(position2**2))
     h = sc_heigth(position)
 
@@ -95,7 +53,10 @@ def acceleration_sci(t:float, state:np.ndarray) -> np.array:
     a_total = - mu / r**3 * position
 
     # Acceleration due to second order perturbations
-    a_total += -3 * mu * J2 * R_e**2 / r**5 * np.array([position[0] * (5 * position[2]**2 / r**2 - 1), position[1] * (5 * position[2]**2 / r**2 - 1), position[2] * (5 * position[2]**2 / r**2 - 3)])
+    a_total += -1.5 * mu * J2 * R_e**2 / r**5 * np.array([
+        position[0] * (5 * position[2]**2 / r**2 - 1),
+        position[1] * (5 * position[2]**2 / r**2 - 1),
+        position[2] * (5 * position[2]**2 / r**2 - 3)])
 
     # Acceleration due to gravity of the second body
     # a_total += - mu2 / r2**3 * position2
@@ -115,7 +76,7 @@ def acceleration_sci(t:float, state:np.ndarray) -> np.array:
 
 
 # Generalized function with more perturbations
-def acceleration_sci_new(t:float, state:np.ndarray, body='earth') -> np.array:
+def acceleration_new(t:float, state:np.ndarray, body='earth') -> np.array:
 
     """
     This function calculates the acceleration of the spacecraft.
@@ -130,7 +91,7 @@ def acceleration_sci_new(t:float, state:np.ndarray, body='earth') -> np.array:
         state_dot: The derivative of the state as a 7 element numpy array: [vx, vy, vz, ax, ay, az, m_dot]
 
     """
-    
+
     # Obtain constants ( CONSIDER BRINGING OUT OF THE FUNCTION )
 
     # From the body data
@@ -187,6 +148,48 @@ def acceleration_sci_new(t:float, state:np.ndarray, body='earth') -> np.array:
     state_dot = np.concatenate((velocity, a_total, -m_dot))
 
     return state_dot
+
+
+# Numba version of the acceleration function
+@njit()
+def acceleration_numba(position:np.array, velocity:np.array, body:str='Earth') -> np.array:
+
+    """
+    This function calculates the acceleration of the spacecraft.
+    It can take into account the gravitational pull of the celestial bodies up to the second order.
+    It can also take into account the drag of the atmosphere.
+
+    """
+
+    # Logic for the celestial body
+    atmos = False
+    if body == 'Earth':
+        mu = bd.earth.gravitational_parameter
+        J2 = bd.earth.J2
+        R_e = bd.earth.radius_equator
+        atmos = True
+    elif body == 'Moon':
+        mu = bd.moon.gravitational_parameter
+    else:
+        raise ValueError('The body is not in the database.')
+
+    # Calculate radius, colatitude and height
+    r = norm(position)
+    h = sc_heigth(position)
+
+    # Acceleration due to gravity
+    a_total = - mu / r**3 * position
+
+    # Acceleration due to perturbations
+    if body == 'Earth':
+        a_total += -1.5 * mu * J2 * R_e**2 / r**5 * np.array([position[0] * (5 * position[2]**2 / r**2 - 1), position[1] * (5 * position[2]**2 / r**2 - 1), position[2] * (5 * position[2]**2 / r**2 - 3)])
+
+    # Acceleration due to drag
+    if h < 745 and atmos is True:
+        a_drag = drag_acceleration(position, velocity, heights, rho)
+        a_total += a_drag 
+
+    return a_total
 
 
 # Test the function

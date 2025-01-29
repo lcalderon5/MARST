@@ -16,6 +16,21 @@ import plotly.graph_objects as go
 
 def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750):
 
+    """
+    This function plots the orbit of the spacecraft using Plotly.
+    The orbit is split into two segments: atmospheric and space.
+    The atmospheric segment is colored red and the space segment is colored green.
+    The Earth's surface is also plotted as a blue sphere.
+
+    Parameters:
+    - motions: a 3xN array containing the x, y, and z coordinates of the spacecraft at each time step.
+    - res: the resolution of the plot. A value of 1 means that every point in the orbit is plotted.
+    - atmosphere_altitude: the altitude of the atmosphere in km.
+
+    Returns:
+    - None
+    """
+
     # Apply resolution
     step = int(1 / res)
     motions = motions[::step]
@@ -150,6 +165,51 @@ def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750):
     # Show plot
     fig.show()
 
+
+def plot_matplotlib(positions, t, state0, radial_event_states):
+    # Plot results in a 3D plot
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Extract position components
+    x, y, z = positions
+    r = np.linalg.norm(positions, axis=0)
+
+    # Extract positions of apoapsis and periapsis
+    apoapsis_positions = [state[:3] for state in radial_event_states if np.linalg.norm(state[:3]) > np.linalg.norm(state0[:3])]
+    periapsis_positions = [state[:3] for state in radial_event_states if np.linalg.norm(state[:3]) <= np.linalg.norm(state0[:3])]
+
+
+    # Plot the trajectory
+    ax.plot(x, y, z, label='Orbit trajectory')
+
+    # Plot apoapsis and periapsis points
+    for ap in apoapsis_positions:
+        ax.scatter(*ap, color='red', s=100, label='Apoapsis')
+    for pp in periapsis_positions:
+        ax.scatter(*pp, color='green', s=100, label='Periapsis')
+
+    # Plot Earth as a point at the origin
+    ax.scatter(0, 0, 0, color='blue', s=200, label='Earth')
+
+    # Add labels and legend
+    ax.set_xlabel('X (m)')
+    ax.set_ylabel('Y (m)')
+    ax.set_zlabel('Z (m)')
+    ax.set_title('Orbit Simulation')
+    ax.legend()
+
+    # Set aspect ratio
+    ax.set_box_aspect([1, 1, 1])  # Equal scaling
+
+    # Show the plot
+    plt.show()
+
+    # Plot altitude vs time
+    plt.plot(t, r - 6371000)
+    plt.show()
+
+    print(len(t), 'time steps')
 
 # Plot collected air composition
 
