@@ -1,13 +1,15 @@
 # Lucas Calderon
 # This file contains the physiscs for the orbital mechanics of the spacecraft.
+
 import sys
 import os
+import numpy as np
+from numba import njit
+import spiceypy as spice
 
 # Add the project root directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import numpy as np
-from numba import njit
 from Modules.helper import sc_heigth, norm, orbital_elements_to_cartesian
 from Config import bodies_data as bd
 from Config.spacecraft import spacecraft
@@ -19,7 +21,7 @@ rho = air
 
 
 # Acceleratin function for scipy integration
-def acceleration(t:float, state:np.ndarray) -> np.array:
+def acceleration(et:float, state:np.ndarray) -> np.array:
 
     """
     This function calculates the acceleration of the spacecraft.
@@ -76,7 +78,7 @@ def acceleration(t:float, state:np.ndarray) -> np.array:
 
 
 # Generalized function with more perturbations
-def acceleration_new(t:float, state:np.ndarray, body='Earth') -> np.array:
+def acceleration_new(et:float, state:np.ndarray, body='Earth') -> np.array:
 
     """
     This function calculates the acceleration of the spacecraft.
@@ -102,7 +104,7 @@ def acceleration_new(t:float, state:np.ndarray, body='Earth') -> np.array:
     R_e = body_data.radius_equator
     body2 = body_data.body2
     mu2 = getattr(bd, body2).gravitational_parameter
-    pos_body2 = np.array([0, 0, 0]) # PLACEHOLDER
+    pos_body2 = spice.spkezr(body2, et, 'J2000', 'NONE', body)[0][:3] # PLACEHOLDER
 
     # From the spacecraft data
     a_T = spacecraft.thrust

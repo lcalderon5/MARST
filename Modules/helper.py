@@ -25,10 +25,12 @@ def sc_heigth(pos):
     
     # Calculate radius, latitude and height
     theta = np.arctan(pos[2] / np.sqrt(pos[0] **2 + pos[1] **2 + 1e-10))
-    earth_radius = bd.earth.radius_equator - abs(theta) / (2*np.pi) * (bd.earth.radius_equator - bd.earth.radius_polar)
+    earth_radius = bd.Earth.radius_equator - abs(theta) / (2*np.pi) * (bd.Earth.radius_equator - bd.Earth.radius_polar)
     height = np.sqrt(np.sum(pos**2)) - earth_radius
     return height
 
+
+# Function to be replaced by spiceypy implementations
 
 # Function to obtain the spacecraft's velocity in the inertial frame from the orbital elements
 @njit
@@ -121,6 +123,8 @@ def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float,
     v_inertial = R_total @ v_peri
 
     return r_inertial, v_inertial
+# Equivalent to spiceypy.conics(state, et, mu) function
+
 
 # Function to obtain the orbital elements from the spacecraft's position and velocity (WORK IN PROGRESS)
 @njit
@@ -146,7 +150,7 @@ def cartesian_to_orbital_elements(mu, position, velocity):
     pass
 
     # return peri, apo, i, raan, arg_periapsis, true_anomaly
-
+# Equivalent to spiceypy.oscltx(state, et, mu) function
 
 # Linear interpolation in numba
 # This function finds the correspoinding value of x in the xp array and returns the interpolated value of fp
@@ -173,5 +177,3 @@ def norm(vector):
 def distance(p1, p2):
     return norm(p1 - p2)
 
-
-# Function to 
