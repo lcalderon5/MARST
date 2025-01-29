@@ -1,40 +1,35 @@
+import os
+import sys
+
+# Add the project root directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import matplotlib.pyplot as plt
 import numpy as np
-
-# Create points ranging from latitude 90 to -90
-
-r = 6471000
-theta = np.linspace(-np.pi/2, np.pi/2, 1000)
-
-x = r * np.cos(theta)
-z = r * np.sin(theta)
-y = np.zeros_like(x)
-position = np.array([x, y, z])
-
-mu = 3.986004418e14
-J2 = 1.082626925638815e-3
-R_e = 6371000
-
-a_total = -1.5 * mu * J2 * R_e**2 / r**5 * np.array([
-        position[0] * (5 * position[2]**2 / r**2 - 1),
-        position[1] * (5 * position[2]**2 / r**2 - 1),
-        position[2] * (5 * position[2]**2 / r**2 - 3)])
+import spiceypy as spice
+import time
 
 
-a_mag = np.linalg.norm(a_total, axis=0)
-theta = np.degrees(theta)
-a_r = a_total * position / np.linalg.norm(position, axis=0)
+# Load the SPICE Kernels
+spice.furnsh(r"C:\Users\lucas\Desktop\Code Adventures\MARST\MARST\Data\Spice\Solar_sytem_kernel.tm")
 
-a_r_mag = np.linalg.norm(a_r, axis=0)
+# Do some test calculations
 
-plt.plot(theta, a_r[0], label="a_x")
-plt.plot(theta, a_r[1], label="a_y")
-plt.plot(theta, a_r[2], label="a_z")
+# Calculate the position of the Moon relative to the Earth in the J2000 ECI frame
 
-plt.plot(theta, a_mag, label="a_mag")
+# Set the start time of the simulation, using the time at the start of the J2000 epoch as an example
+et = spice.str2et('2000-01-01T12:00:00') # Convert the time to ephemeris time
 
-plt.plot(theta, a_r_mag, label="a_r")
+# Get the position of the Moon relative to the Earth in the J2000 ECI frame
+start = time.perf_counter()
+moon_state, _ = spice.spkezr('Moon', et, 'J2000', 'NONE', 'Earth')
+end = time.perf_counter()
+print(f'Time taken to calculate Moon position: {end - start} seconds')
 
-plt.legend()
+# Extract the position and velocity vector from the state vector
+moon_position = moon_state[:3]
+moon_velocity = moon_state[3:]
 
-plt.show()
+# Print the position and velocity of the Moon relative to the Earth
+print(f'Moon Position (km): {moon_position}')
+print(f'Moon Velocity (km/s): {moon_velocity}')

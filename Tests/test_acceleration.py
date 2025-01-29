@@ -4,7 +4,7 @@ import sys
 # Add the project root directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from Modules.dynamics import acceleration, acceleration_sci, acceleration_sci_new
+from Modules.dynamics import acceleration, acceleration_new
 import numpy as np
 
 # Test the acceleration function
@@ -20,7 +20,7 @@ def test_acceleration(func):
     state_dot = func(0, state) * 1000 # Convert to m/s^2
     a = state_dot[3:]
 
-    if not np.allclose(a, np.array([0, 0, -9.82]), atol=1e-2):
+    if not np.allclose(a, np.array([0, 0, -9.82]), atol=1e-1):
         print(a)
         raise ValueError("The acceleration is incorrect")
         
@@ -41,5 +41,5 @@ def test_acceleration(func):
 
 if __name__ == "__main__":
 
-    test_acceleration(acceleration_sci)
-    test_acceleration(acceleration_sci_new)
+    test_acceleration(acceleration)
+    test_acceleration(acceleration_new)

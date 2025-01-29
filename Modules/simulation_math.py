@@ -14,7 +14,7 @@ from Config.spacecraft import spacecraft
 from Modules.helper import sc_heigth, orbital_elements_to_cartesian
 
 
-# Another implementation of the simulation, this time using scipy ODE solver: solve_ivp
+# Orbit propagator using scipy ODE solver: solve_ivp with RK45
 def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
 
     """
@@ -60,7 +60,7 @@ def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
     return t_hist.T, pos_hist.T, vel_hist.T
 
 
-# Numba compatible propagation function (OLD, NOT SUPPORTED)
+# Numba compatible propagation function (OLD, NOT SUPPORTED ANYMORE)
 @njit
 def run_simulation(n_max: int, dt:float, Method:str = "RK4"):
     """

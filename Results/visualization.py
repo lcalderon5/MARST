@@ -165,6 +165,7 @@ def plot_orbit_plotly(motions, res=0.5, atmosphere_altitude=750):
     # Show plot
     fig.show()
 
+# Plot the orbit using matplotlib
 
 def plot_matplotlib(positions, t, state0, radial_event_states):
     # Plot results in a 3D plot

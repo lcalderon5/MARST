@@ -20,10 +20,6 @@ from Config.spacecraft import initial_position, initial_velocity
 
 if __name__ == "__main__":
 
-    # Define the simulation parameters
-    n_max = int(1e6)
-    dt = 1
-
     # Load the SPICE Kernels
     spice.furnsh(r"C:\Users\lucas\Desktop\Code Adventures\MARST\MARST\Data\Spice\Solar_sytem_kernel.tm")
 
