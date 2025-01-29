@@ -11,11 +11,11 @@ import scipy.integrate as spi
 from numba import njit
 from Modules.dynamics import acceleration
 from Config.spacecraft import spacecraft
-from Modules.helper import sc_heigth, orbital_elements_to_cartesian
+from Modules.helper import sc_heigth
 
 
-# Orbit propagator using scipy ODE solver: solve_ivp with RK45
-def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
+# Orbit propagator using scipy ODE solver: solve_ivp
+def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray, body:str='Earth') -> tuple:
 
     """
     This function propagates an orbit.
@@ -24,8 +24,9 @@ def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
         t_span: The time span of the simulation, a 2 member numpy array with the initial and final time, in et seconds
         acc_func: The acceleration function to use
         state0: The initial state of the spacecraft, a 7 member numpy array with the initial position, velocity and mass of the spacecraft
+        body: The body that the spacecraft is orbiting initially
     Returns:
-        pos_hist: THe history of the positions of the spacecraft
+        pos_hist: The history of the positions of the spacecraft
         vel_hist: The history of the velocities of the spacecraft
         mass_hist: The history of the mass of the spacecraft
         t_hist: The history of the time of the simulation
@@ -34,8 +35,9 @@ def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
     # Print that the propagation is starting
     print("Propagating orbit")
 
-    # Define event functions
-    # Collision event
+    # --- Event functions ---
+
+    # Collision event (WORK IN PROGRESS, NEEDS TO BE GENERALIZED)
     def collision_event(t, state):
         R = 6371  # Earth's radius in meters
         tolerance = 69  # Allow a buffer for a realistic height boundary
@@ -45,12 +47,14 @@ def propagate_phase(t_span:np.ndarray, acc_func:callable, state0:np.ndarray):
     collision_event.terminal = True
     collision_event.direction = 0
 
-    # SOI event (Work in progress, for the future)
+    # SOI event (WORK IN PROGRESS)
     def SOI_event(t, state):
+
         pass
 
     # Define the events
     events = [collision_event]
+
 
     # Solve ODE: dv/dt = a, dx/dt = v
     sol = spi.solve_ivp(acc_func, t_span, state0, method='LSODA', rtol=1e-9, atol=1e-9, events=events)

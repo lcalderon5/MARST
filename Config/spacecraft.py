@@ -19,7 +19,7 @@ import Config.bodies_data as bd
 body = 'Earth' # The body that the spacecraft is orbiting
 Periapsis = 200 # h in km
 Apoapsis = 200 # h in km
-Inclination = 0    # Inclination in degrees
+Inclination = 30    # Inclination in degrees
 Rigth_Ascension_node = 30 # Right Ascension of the Ascending Node in degrees
 Argument_periapsis = 40 # deg
 Mean_anomaly_epoch = 180 # deg (v0)
@@ -84,6 +84,6 @@ spacecraft = Spacecraft(
                     initial_position=initial_position,  # Initial position in km
                     initial_velocity=initial_velocity,  # Initial velocity in km/s
                     M_propellant=1000,  # kg
-                    thrust=10,  # N
+                    thrust=1,  # N
                     mass_flow_rate=0.001  # kg/s
 )

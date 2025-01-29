@@ -5,155 +5,92 @@ import sys
 import os
 import numpy as np
 from numba import njit
+import spiceypy as spice
 
 # Add the project root directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from Config import bodies_data as bd
 
+
+# ------------FUNCTION TO CALCULATE THE HEIGHT OF THE SPACECRAFT----------------
 @njit
-def sc_heigth(pos):
+def sc_heigth(pos, body='Earth'):
     """
-    This function calculates the height of the spacecraft, taking into account the earth's change in radius over its latitude.
+    This function calculates the height of the spacecraft over the body it's orbiting.
+    It takes into account the oblateness of the body.
 
     Inputs:
         pos: The position of the spacecraft as a 3 element numpy array
+        body: The celestial body that the spacecraft is orbiting, default is Earth
 
     Returns:
         height: The height of the spacecraft as a scalar
     """
     
+    # Unpack body data
+    body_data = getattr(bd, body)
+    r_equator = body_data.radius_equator
+    r_polar = body_data.radius_polar
+
     # Calculate radius, latitude and height
     theta = np.arctan(pos[2] / np.sqrt(pos[0] **2 + pos[1] **2 + 1e-10))
-    earth_radius = bd.Earth.radius_equator - abs(theta) / (2*np.pi) * (bd.Earth.radius_equator - bd.Earth.radius_polar)
-    height = np.sqrt(np.sum(pos**2)) - earth_radius
+    r_local = r_equator - abs(theta) / (2*np.pi) * (r_equator - r_polar)
+    height = np.sqrt(np.sum(pos**2)) - r_local
     return height
 
 
-# ------------Functions to be replaced by spiceypy implementations----------------
-# Function to obtain the spacecraft's velocity in the inertial frame from the orbital elements
-@njit
-def orbital_elements_to_cartesian(mu: float, peri: float, apo: float, i: float, 
-                                  raan: float, arg_periapsis: float, init_anomaly: float, t: float = 0):
+# ------------FUNCTIONS TO CONVERT BETWEEN COES AND STATE----------------
+# Function to obtain the spacecraft's state the classical orbital elements
+def coes_to_states(elts, et):
+
     """
-    Converts orbital elements to cartesian coordinates and propagates the orbit over time.
+    Converts orbital elements to cartesian coordinates.
 
     Inputs:
         mu: The gravitational parameter of the central body (km^3/s^2)
-        peri: The periapsis of the orbit (km)
-        apo: The apoapsis of the orbit (km)
-        i: The inclination of the orbit (degrees)
-        raan: The right ascension of the ascending node (degrees)
-        arg_periapsis: The argument of periapsis (degrees)
-        init_anomaly: The initial true anomaly (degrees)
-        t: Time since the epoch (seconds)
+        elts: The orbital elements of the spacecraft as a 8*N element numpy array: 
+            [Periapsis, e, i, raan, arg_periapsis, mean_anomaly_atepoch, et, mu] * N
 
     Returns:
-        r_inertial: The position vector in the inertial frame (km)
-        v_inertial: The velocity vector in the inertial frame (km/s)
+        state: The state of the spacecraft as a 6*N element numpy array: [x, y, z, vx, vy, vz] * N
     """
 
+    states = np.zeros((len(elts), 6))
 
-    # Convert to radians
-    i = np.radians(i)
-    raan = np.radians(raan)
-    arg_periapsis = np.radians(arg_periapsis)
+    for i in range(len(elts)):
+        state = spice.conics(elts[i], et[i])
+        states[i] = state
 
-    # Calculate semi-major axis and eccentricity
-    a = (peri + apo) / 2  # Semi-major axis (km)
-    e = (apo - peri) / (apo + peri)  # Eccentricity
-
-    # Calculate mean motion (rad/s)
-    n = np.sqrt(mu / a**3)
-
-    # Calculate initial mean anomaly (convert initial true anomaly to mean anomaly)
-    init_anomaly = np.radians(init_anomaly)
-    E0 = 2 * np.arctan(np.sqrt((1 - e) / (1 + e)) * np.tan(init_anomaly / 2))
-    M0 = E0 - e * np.sin(E0)
-
-    # Propagate mean anomaly to time t
-    M = M0 + n * t
-
-    # Solve Kepler's equation for eccentric anomaly
-    E = M  # Initial guess
-    while True:
-        E_next = E + (M - (E - e * np.sin(E))) / (1 - e * np.cos(E))
-        if abs(E_next - E) < 1e-8:
-            break
-        E = E_next
-
-
-    # Calculate true anomaly (nu) from eccentric anomaly
-    nu = 2 * np.arctan2(np.sqrt(1 + e) * np.sin(E / 2),
-                        np.sqrt(1 - e) * np.cos(E / 2))
-
-    # Calculate distance (r) at the propagated true anomaly
-    p = a * (1 - e**2)  # Semi-latus rectum (km)
-    r = p / (1 + e * np.cos(nu))
-
-    # Position vector in perifocal coordinates
-    r_peri = np.array([r * np.cos(nu),
-                       r * np.sin(nu),
-                       0.0])
-
-    # Velocity vector in perifocal coordinates
-    v_peri = np.array([-np.sqrt(mu / p) * np.sin(nu),
-                       np.sqrt(mu / p) * (e + np.cos(nu)),
-                       0.0])
-
-    # Rotation matrices
-    R3_raan = np.array([[np.cos(-raan), np.sin(-raan), 0.0],
-                        [-np.sin(-raan), np.cos(-raan), 0.0],
-                        [0.0, 0.0, 1.0]])
-
-    R1_incl = np.array([[1.0, 0.0, 0.0],
-                        [0.0, np.cos(-i), np.sin(-i)],
-                        [0.0, -np.sin(-i), np.cos(-i)]])
-
-    R3_arg_peri = np.array([[np.cos(-arg_periapsis), np.sin(-arg_periapsis), 0.0],
-                            [-np.sin(-arg_periapsis), np.cos(-arg_periapsis), 0.0],
-                            [0.0, 0.0, 1.0]])
-
-    # Total rotation matrix
-    R_total = R3_arg_peri @ R1_incl @ R3_raan
-
-    # Transform to inertial frame
-    r_inertial = R_total @ r_peri
-    v_inertial = R_total @ v_peri
-
-    return r_inertial, v_inertial
-# Equivalent to spiceypy.conics(state, et, mu) function
+    return states
 
 
 # Function to obtain the orbital elements from the spacecraft's position and velocity
-@njit
-def cartesian_to_orbital_elements(mu, position, velocity):
+def states_to_coes(state, et, mu):
 
     """
     Converts cartesian coordinates to orbital elements.
 
     Inputs:
+        state: A 2D array with the state of the spacecraft as a 6*N element numpy array over time: [x, y, z, vx, vy, vz] * N
+        et: The time ephimeral time of the simulation, a list of N elements
         mu: The gravitational parameter of the central body (km^3/s^2)
-        position: The position vector in the inertial frame (km)
-        velocity: The velocity vector in the inertial frame (km/s)
 
     Returns:
-        peri: The periapsis of the orbit (km)
-        apo: The apoapsis of the orbit (km)
-        i: The inclination of the orbit (degrees)
-        raan: The right ascension of the ascending node (degrees)
-        arg_periapsis: The argument of periapsis (degrees)
-        true_anomaly: The true anomaly (degrees)
+        coes: The classical orbital elements of the spacecraft as a 11 element numpy array: 
+            [peri, e, i, longitude_ascending_node, arg_periapsis, mean_anomaly_atepoch, epoch, mu, true_anomaly_atepoch, a, orbital_period] * N
     """
 
-    pass
+    coes = np.zeros((len(state), 11))
 
-    # return peri, apo, i, raan, arg_periapsis, true_anomaly
-# Equivalent to spiceypy.oscltx(state, et, mu) function
+    for i in range(len(state)):
+        coe = spice.oscltx(state[i], et[i], mu)
+        coes[i] = coe
+
+    return coes
 
 
-
-#---------- NUMBA FUNCTIONS ----------
+#---------- NUMBA COMPATIBLE FUNCTIONS ----------
 # Linear interpolation in numba
 # This function finds the correspoinding value of x in the xp array and returns the interpolated value of fp
 @njit

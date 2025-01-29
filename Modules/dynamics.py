@@ -10,7 +10,7 @@ import spiceypy as spice
 # Add the project root directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from Modules.helper import sc_heigth, norm, orbital_elements_to_cartesian
+from Modules.helper import sc_heigth, norm
 from Config import bodies_data as bd
 from Config.spacecraft import spacecraft
 from Modules.aero import drag_acceleration
