@@ -37,6 +37,8 @@ plotly
 
 spiceypy
 
+msise00
+
 numba -maybe not
 
 # References
