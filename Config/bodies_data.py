@@ -3,6 +3,7 @@
 # The data is taken mostly from the NASA fact sheets for the Earth and the Moon.
 
 from collections import namedtuple
+import spicepy as spice
 
 # Using named tuples to make it more numba friendly, they are immutable and faster than dictionaries
 

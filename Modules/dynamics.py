@@ -20,58 +20,7 @@ heights = h
 rho = air
 
 
-# Acceleratin function for scipy integration
-def acceleration_simple(et:float, state:np.ndarray) -> np.array:
-
-    """
-    This function calculates the acceleration of the spacecraft.
-    It can take into account the gravitational pull of the celestial bodies up to the second order.
-    It can also take into account the drag of the atmosphere.
-
-    Inputs:
-        t: The time of the simulation
-        state: The state of the spacecraft as a 6 element numpy array: [x, y, z, vx, vy, vz]
-
-    Returns:
-        state_dot: The derivative of the state as a 6 element numpy array: [vx, vy, vz, ax, ay, az]
-
-    """
-    # Obtain constants ( TO BE EXPANDED )
-    mu = bd.Earth.gravitational_parameter
-    J2 = bd.Earth.J2
-    R_e = bd.Earth.radius_equator
-    atmos = bd.Earth.atmos
-
-    # Unpack the state vector
-    position = state[:3]
-    velocity = state[3:]
-
-    # Calculate radius, colatitude and height
-    r = np.linalg.norm(position)
-    # r2 = np.sqrt(np.sum(position2**2))
-    h = sc_heigth(position)
-
-    # Acceleration due to gravity of the first body
-    a_total = - mu / r**3 * position
-
-    # Acceleration due to second order perturbations
-    a_total += -1.5 * mu * J2 * R_e**2 / r**5 * np.array([
-        position[0] * (5 * position[2]**2 / r**2 - 1),
-        position[1] * (5 * position[2]**2 / r**2 - 1),
-        position[2] * (5 * position[2]**2 / r**2 - 3)])
-
-    # Acceleration due to drag
-    if h < 745 and atmos is True:
-        a_drag = drag_acceleration(position, velocity, heights, rho)
-        a_total += a_drag 
-
-    # Create state_dot vector
-    state_dot = np.concatenate((velocity, a_total))
-
-    return state_dot
-
-
-# Generalized function with more perturbations
+# Current acceleration function
 def acceleration(et:float, state:np.ndarray, body='Earth') -> np.array:
 
     """
@@ -82,6 +31,7 @@ def acceleration(et:float, state:np.ndarray, body='Earth') -> np.array:
     Inputs:
         t: The time of the simulation
         state: The state of the spacecraft as a 7 element numpy array: [x, y, z, vx, vy, vz, m]
+        body: The celestial body that the spacecraft is orbiting
 
     Returns:
         state_dot: The derivative of the state as a 7 element numpy array: [vx, vy, vz, ax, ay, az, m_dot]
@@ -144,6 +94,66 @@ def acceleration(et:float, state:np.ndarray, body='Earth') -> np.array:
     state_dot = np.concatenate((velocity, a_total, np.array([-m_dot])))
 
     return state_dot
+
+
+# New acceleration function (WORK IN PROGRESS)
+def acceleration_new(et:float, state:np.ndarray, body='Earth', perts=None) -> np.array:
+
+    """
+    This function calculates the acceleration of the spacecraft.
+    It can take into account the gravitational pull of the celestial bodies up to the second order.
+    It can also take into account the drag of the atmosphere.
+
+    Inputs:
+        t: The time of the simulation
+        state: The state of the spacecraft as a 7 element numpy array: [x, y, z, vx, vy, vz, m]
+        body: The celestial body that the spacecraft is orbiting
+        perts: (Optional) (WORK IN PROGRESS) A dictionary with the perturbations to be considered.
+
+    Returns:
+        state_dot: The derivative of the state as a 7 element numpy array: [vx, vy, vz, ax, ay, az, m_dot]
+
+    """
+
+    # Unpack the state vector
+    position = state[:3]
+    velocity = state[3:6]
+
+    # Obtain constants ( CONSIDER BRINGING OUT OF THE FUNCTION, OR NOT CUZ SPICEYPY IS GOAT FAST )
+
+    # From the body data
+    body_data = getattr(bd, body)
+    mu = body_data.gravitational_parameter
+    J2 = body_data.J2
+    atmos = body_data.atmos
+    R_e = body_data.radius_equator
+    body2 = body_data.body2
+    mu2 = getattr(bd, body2).gravitational_parameter
+    pos_body2 = spice.spkezr(body2, et, 'J2000', 'NONE', body)[0][:3] # Position of the second body, wrt to the first body
+
+    # From the spacecraft data
+    a_T = spacecraft.thrust / state[6] / 1000 * velocity / np.linalg.norm(velocity) # Thrust acceleration in km/s^2
+    if spacecraft.thrust is not None:
+        m_dot = spacecraft.mass_flow_rate
+    else:
+        m_dot = 0
+
+    #--------------------------------
+
+    # Calculate radius, position2 and height
+    r = np.linalg.norm(position)
+    h = sc_heigth(position)
+    position2 = pos_body2 - position
+    r2 = np.linalg.norm(pos_body2)
+
+    # Acceleration due to central body
+    a_total = - mu / r**3 * position
+
+    # Acceleration due to second order perturbations
+
+
+    return
+
 
 
 # Numba version of the acceleration function

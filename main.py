@@ -23,6 +23,12 @@ if __name__ == "__main__":
     # Load the SPICE Kernels
     spice.furnsh(r"C:\Users\lucas\Desktop\Code Adventures\MARST\MARST\Data\Spice\Solar_sytem_kernel.tm")
 
+    # Test loading the gravitational parameter of the Earth
+    radii_earth = spice.bodvrd('EARTH', 'RADII', 3)[1][0]
+    mu = spice.bodvrd('EARTH', 'GM', 1)[1][0]
+    print(f"mu: {radii_earth}")
+    print(f"mu: {mu}")
+
     # Load the spacecraft initial conditions
     et = spacecraft.et0
     t_phase = 1e6 # 1e6 seconds is 11.57 days
@@ -35,6 +41,9 @@ if __name__ == "__main__":
     # Convert data to coes
     state = np.concatenate((pos_hist, vel_hist), axis=1)
     coes = states_to_coes(state, t_hist, mu)
+
+    # Clear the kernel pool
+    spice.kclear()
 
     # Debugging
     # print(f"Final height: {sc_heigth(pos_hist[-1])} km")
